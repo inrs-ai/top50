@@ -12,7 +12,7 @@ TO_EMAIL = os.getenv("TO_EMAIL")
 FROM_EMAIL = os.getenv("FROM_EMAIL")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 NEWSDATA_API_KEY = os.getenv("NEWSDATA_API_KEY") 
-GEMINI_API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={GEMINI_API_KEY}"
+GEMINI_API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={GEMINI_API_KEY}"
 
 # ========== 工具函数 ==========
 
