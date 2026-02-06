@@ -287,7 +287,7 @@ def build_email_html(df, analysis, bj_now):
 
           <tr>
             <td style="padding:8px 20px 4px 20px;">
-              <div style="font-size:14px;color:#111827;font-weight:600;margin-bottom:4px;">📊 市场归纳分析 (Powered by Gemini)</div>
+              <div style="font-size:14px;color:#111827;font-weight:600;margin-bottom:4px;">📊 市场归纳分析</div>
             </td>
           </tr>
 
