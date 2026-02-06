@@ -10,10 +10,15 @@ from datetime import datetime, timedelta, timezone
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 TO_EMAIL = os.getenv("TO_EMAIL")
 FROM_EMAIL = os.getenv("FROM_EMAIL")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-NEWSAPI_KEY = os.getenv("NEWSAPI_KEY")  # 可选
 
-OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"  # 如使用兼容服务，可替换
+# 修改 1: 替换为 Gemini API Key
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+# 修改 2: 替换为 Newsdata.io API Key
+NEWSDATA_API_KEY = os.getenv("NEWSDATA_API_KEY") 
+
+# 修改 3: Gemini API URL (使用 Flash 模型，速度快且免费额度高)
+GEMINI_API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
 
 # ========== 工具函数 ==========
 
@@ -34,7 +39,7 @@ def fetch_market_data(tickers):
     返回 DataFrame: [symbol, name, industry, close, pct_change]
     """
     symbols = [t["symbol"] for t in tickers]
-    # 使用 yfinance 批量下载最近 2 天数据
+    # 使用 yfinance 批量下载最近 3 天数据（确保涵盖周末/节假日逻辑）
     data = yf.download(
         tickers=" ".join(symbols),
         period="3d",
@@ -51,7 +56,6 @@ def fetch_market_data(tickers):
         industry = t["industry"]
 
         try:
-            # yfinance 在多 ticker 时的列结构略复杂，做兼容处理
             if len(symbols) == 1:
                 df = data
             else:
@@ -79,42 +83,43 @@ def fetch_market_data(tickers):
             print(f"Error fetching data for {symbol}: {e}")
 
     df_result = pd.DataFrame(rows)
-    # 第三步：按涨跌幅从大到小排序（正到负）
-    df_result = df_result.sort_values(by="pct_change", ascending=False).reset_index(drop=True)
+    if not df_result.empty:
+        df_result = df_result.sort_values(by="pct_change", ascending=False).reset_index(drop=True)
     return df_result
 
 def fetch_news():
     """
-    使用 NewsAPI 获取当日美国商业/财经新闻标题（可选）
-    返回一个字符串列表
+    修改 4: 使用 Newsdata.io 获取当日美国商业/财经新闻标题
+    注意：Newsdata.io 免费版每天限制 200 次请求
     """
-    if not NEWSAPI_KEY:
+    if not NEWSDATA_API_KEY:
         return []
 
-    url = "https://newsapi.org/v2/top-headlines"
+    url = "https://newsdata.io/api/1/news"
     params = {
+        "apikey": NEWSDATA_API_KEY,
         "country": "us",
         "category": "business",
-        "pageSize": 20,
-        "apiKey": NEWSAPI_KEY
+        "language": "en",
+        "size": 10  # 限制返回条数，节省 token 和阅读量
     }
     try:
         resp = requests.get(url, params=params, timeout=15)
         resp.raise_for_status()
         data = resp.json()
-        articles = data.get("articles", [])
+        
+        # Newsdata.io 的返回结构是 'results' 列表
+        articles = data.get("results", [])
         headlines = []
         for a in articles:
             title = a.get("title")
-            source = a.get("source", {}).get("name")
+            # source_id 通常是媒体名称 (如 cnn, bloomberg)
+            source = a.get("source_id", "Unknown")
             if title:
-                if source:
-                    headlines.append(f"{title}（{source}）")
-                else:
-                    headlines.append(title)
+                headlines.append(f"{title} ({source})")
         return headlines
     except Exception as e:
-        print(f"Error fetching news: {e}")
+        print(f"Error fetching news from Newsdata.io: {e}")
         return []
 
 def build_stocks_markdown(df):
@@ -132,11 +137,11 @@ def build_stocks_markdown(df):
 
 def call_llm_analysis(df, news_headlines):
     """
-    第四步：调用 LLM，对股票表现 + 新闻 + 基本面进行归纳分析（1000字以内，中文）
+    修改 5: 调用 Google Gemini API
     """
-    if not OPENAI_API_KEY:
-        print("OPENAI_API_KEY not set, skip AI analysis.")
-        return "（未配置 OPENAI_API_KEY，暂无法生成 AI 分析。）"
+    if not GEMINI_API_KEY:
+        print("GEMINI_API_KEY not set, skip AI analysis.")
+        return "（未配置 GEMINI_API_KEY，暂无法生成 AI 分析。）"
 
     stocks_table = build_stocks_markdown(df)
 
@@ -174,32 +179,41 @@ def call_llm_analysis(df, news_headlines):
 - 字数不超过 1000 字。
 """
 
-    headers = {
-        "Authorization": f"Bearer {OPENAI_API_KEY}",
-        "Content-Type": "application/json"
-    }
+    # Gemini REST API 的 Payload 结构与 OpenAI 不同
     payload = {
-        "model": "gpt-4o-mini",  # 如使用其他兼容模型，可在此替换
-        "messages": [
-            {"role": "system", "content": "你是一名经验丰富的宏观与行业分析师。"},
-            {"role": "user", "content": prompt}
-        ],
-        "temperature": 0.6
+        "contents": [{
+            "parts": [{"text": prompt}]
+        }],
+        "generationConfig": {
+            "temperature": 0.6
+        }
+    }
+
+    headers = {
+        "Content-Type": "application/json"
     }
 
     try:
-        resp = requests.post(OPENAI_API_URL, headers=headers, json=payload, timeout=60)
+        # 这里的 URL 已经在配置部分包含了 API Key
+        resp = requests.post(GEMINI_API_URL, headers=headers, json=payload, timeout=60)
         resp.raise_for_status()
         data = resp.json()
-        content = data["choices"][0]["message"]["content"]
+        
+        # 解析 Gemini 的响应结构
+        content = data["candidates"][0]["content"]["parts"][0]["text"]
         return content.strip()
     except Exception as e:
-        print(f"Error calling LLM: {e}")
+        print(f"Error calling Gemini: {e}")
+        # 如果出错，打印详细信息以便调试
+        try:
+            print(resp.text)
+        except:
+            pass
         return "（AI 分析生成失败，请检查 LLM 配置或稍后重试。）"
 
 def build_email_html(df, analysis, bj_now):
     """
-    构建现代、美观且适配手机的 HTML 邮件模板
+    构建现代、美观且适配手机的 HTML 邮件模板 (无需修改，保持原样)
     """
     date_str = bj_now.strftime("%Y-%m-%d")
     time_str = bj_now.strftime("%Y-%m-%d %H:%M")
@@ -273,7 +287,7 @@ def build_email_html(df, analysis, bj_now):
 
           <tr>
             <td style="padding:8px 20px 4px 20px;">
-              <div style="font-size:14px;color:#111827;font-weight:600;margin-bottom:4px;">📊 市场归纳分析</div>
+              <div style="font-size:14px;color:#111827;font-weight:600;margin-bottom:4px;">📊 市场归纳分析 (Powered by Gemini)</div>
             </td>
           </tr>
 
@@ -332,19 +346,19 @@ def send_email(subject, html_body):
 # ========== 主流程 ==========
 
 def main():
-    # 第一步：加载美股市值前 50 名公司名单（你在 tickers.json 中维护）
+    # 第一步：加载美股市值前 50 名公司名单
     tickers = load_tickers()
 
-    # 第二步 & 第三步：获取当日收盘数据，并按涨跌幅排序
+    # 第二步 & 第三步：获取当日收盘数据
     df = fetch_market_data(tickers)
     if df.empty:
         print("No market data fetched. Abort.")
         return
 
-    # 获取新闻（可选）
+    # 获取新闻
     news_headlines = fetch_news()
 
-    # 第四步：调用 AI 进行归纳分析（1000 字以内）
+    # 第四步：调用 Gemini 进行归纳分析
     analysis = call_llm_analysis(df, news_headlines)
 
     # 时间 & 标题
@@ -355,7 +369,7 @@ def main():
     # 构建 HTML 邮件
     html_body = build_email_html(df, analysis, bj_now)
 
-    # 第五步 & 第六步：通过 Resend 发送邮件
+    # 第五步 & 第六步：发送邮件
     send_email(subject, html_body)
 
 
