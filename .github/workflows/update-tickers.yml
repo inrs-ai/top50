@@ -2,7 +2,7 @@ name: Monthly Tickers Update
 
 on:
   schedule:
-    - cron: '26 21 6 * *'
+    - cron: '26 21 3 * *'
   workflow_dispatch:
 
 jobs:
