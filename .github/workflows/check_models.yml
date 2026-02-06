@@ -1,0 +1,45 @@
+name: Check Gemini Models
+
+on:
+  workflow_dispatch: # 允许你手动点击运行
+
+jobs:
+  list-models:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run check script
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python -c "
+          import os
+          import requests
+          api_key = os.getenv('GEMINI_API_KEY')
+          url = f'https://generativelanguage.googleapis.com/v1beta/models?key={api_key}'
+          try:
+              response = requests.get(url)
+              if response.status_code == 200:
+                  models = response.json().get('models', [])
+                  print('\n' + '='*30)
+                  print('你可以使用的模型列表：')
+                  for m in models:
+                      if 'generateContent' in m.get('supportedGenerationMethods', []):
+                          print(f'- {m.get(\'name\')}')
+                  print('='*30)
+              else:
+                  print(f'请求失败: {response.status_code}')
+                  print(response.text)
+          except Exception as e:
+              print(f'发生错误: {e}')
+          "
