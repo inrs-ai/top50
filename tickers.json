@@ -1,28 +1,52 @@
 [
-  {
-    "symbol": "AAPL",
-    "name": "Apple Inc.",
-    "industry": "Consumer Electronics"
-  },
-  {
-    "symbol": "MSFT",
-    "name": "Microsoft Corporation",
-    "industry": "Software—Infrastructure"
-  },
-  {
-    "symbol": "GOOGL",
-    "name": "Alphabet Inc. Class A",
-    "industry": "Internet Content & Information"
-  },
-  {
-    "symbol": "AMZN",
-    "name": "Amazon.com, Inc.",
-    "industry": "Internet Retail"
-  },
-  {
-    "symbol": "NVDA",
-    "name": "NVIDIA Corporation",
-    "industry": "Semiconductors"
-  }
-  // ... 请补全到 50 家
+  {"symbol": "NVDA", "name": "NVIDIA Corporation", "industry": "Semiconductors"},
+  {"symbol": "AAPL", "name": "Apple Inc.", "industry": "Consumer Electronics"},
+  {"symbol": "GOOGL", "name": "Alphabet Inc. Class A", "industry": "Internet Content & Information"},
+  {"symbol": "MSFT", "name": "Microsoft Corporation", "industry": "Software—Infrastructure"},
+  {"symbol": "AMZN", "name": "Amazon.com, Inc.", "industry": "Internet Retail"},
+  {"symbol": "META", "name": "Meta Platforms, Inc.", "industry": "Internet Content & Information"},
+  {"symbol": "TSLA", "name": "Tesla, Inc.", "industry": "Auto Manufacturers"},
+  {"symbol": "AVGO", "name": "Broadcom Inc.", "industry": "Semiconductors"},
+  {"symbol": "BRK-B", "name": "Berkshire Hathaway Inc. Class B", "industry": "Insurance—Diversified"},
+  {"symbol": "WMT", "name": "Walmart Inc.", "industry": "Discount Stores"},
+  {"symbol": "LLY", "name": "Eli Lilly and Company", "industry": "Drug Manufacturers—General"},
+  {"symbol": "JPM", "name": "JPMorgan Chase & Co.", "industry": "Banks—Diversified"},
+  {"symbol": "V", "name": "Visa Inc. Class A", "industry": "Credit Services"},
+  {"symbol": "TSM", "name": "Taiwan Semiconductor Manufacturing Company", "industry": "Semiconductors"},
+  {"symbol": "XOM", "name": "Exxon Mobil Corporation", "industry": "Oil & Gas Integrated"},
+  {"symbol": "UNH", "name": "UnitedHealth Group Incorporated", "industry": "Healthcare Plans"},
+  {"symbol": "MA", "name": "Mastercard Incorporated Class A", "industry": "Credit Services"},
+  {"symbol": "JNJ", "name": "Johnson & Johnson", "industry": "Drug Manufacturers—General"},
+  {"symbol": "PG", "name": "Procter & Gamble Company", "industry": "Household & Personal Products"},
+  {"symbol": "ORCL", "name": "Oracle Corporation", "industry": "Software—Infrastructure"},
+  {"symbol": "HD", "name": "Home Depot, Inc.", "industry": "Home Improvement Retail"},
+  {"symbol": "CVX", "name": "Chevron Corporation", "industry": "Oil & Gas Integrated"},
+  {"symbol": "MRK", "name": "Merck & Co., Inc.", "industry": "Drug Manufacturers—General"},
+  {"symbol": "ABBV", "name": "AbbVie Inc.", "industry": "Drug Manufacturers—General"},
+  {"symbol": "COST", "name": "Costco Wholesale Corporation", "industry": "Discount Stores"},
+  {"symbol": "BAC", "name": "Bank of America Corporation", "industry": "Banks—Diversified"},
+  {"symbol": "KO", "name": "Coca-Cola Company", "industry": "Beverages—Non-Alcoholic"},
+  {"symbol": "PEP", "name": "PepsiCo, Inc.", "industry": "Beverages—Non-Alcoholic"},
+  {"symbol": "NFLX", "name": "Netflix, Inc.", "industry": "Entertainment"},
+  {"symbol": "ADBE", "name": "Adobe Inc.", "industry": "Software—Infrastructure"},
+  {"symbol": "TMO", "name": "Thermo Fisher Scientific Inc.", "industry": "Diagnostics & Research"},
+  {"symbol": "MCD", "name": "McDonald's Corporation", "industry": "Restaurants"},
+  {"symbol": "WFC", "name": "Wells Fargo & Company", "industry": "Banks—Diversified"},
+  {"symbol": "CRM", "name": "Salesforce, Inc.", "industry": "Software—Application"},
+  {"symbol": "ACN", "name": "Accenture plc", "industry": "Information Technology Services"},
+  {"symbol": "AMD", "name": "Advanced Micro Devices, Inc.", "industry": "Semiconductors"},
+  {"symbol": "LIN", "name": "Linde plc", "industry": "Specialty Chemicals"},
+  {"symbol": "INTC", "name": "Intel Corporation", "industry": "Semiconductors"},
+  {"symbol": "DIS", "name": "Walt Disney Company", "industry": "Entertainment"},
+  {"symbol": "CMCSA", "name": "Comcast Corporation", "industry": "Telecom Services"},
+  {"symbol": "VZ", "name": "Verizon Communications Inc.", "industry": "Telecom Services"},
+  {"symbol": "NKE", "name": "NIKE, Inc.", "industry": "Footwear & Accessories"},
+  {"symbol": "PFE", "name": "Pfizer Inc.", "industry": "Drug Manufacturers—General"},
+  {"symbol": "TXN", "name": "Texas Instruments Incorporated", "industry": "Semiconductors"},
+  {"symbol": "UPS", "name": "United Parcel Service, Inc.", "industry": "Integrated Freight & Logistics"},
+  {"symbol": "PM", "name": "Philip Morris International Inc.", "industry": "Tobacco"},
+  {"symbol": "HON", "name": "Honeywell International Inc.", "industry": "Conglomerates"},
+  {"symbol": "CAT", "name": "Caterpillar Inc.", "industry": "Farm & Heavy Construction Machinery"},
+  {"symbol": "IBM", "name": "International Business Machines Corporation", "industry": "Information Technology Services"},
+  {"symbol": "AMAT", "name": "Applied Materials, Inc.", "industry": "Semiconductor Equipment"}
 ]
