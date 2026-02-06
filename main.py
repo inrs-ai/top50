@@ -10,15 +10,9 @@ from datetime import datetime, timedelta, timezone
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 TO_EMAIL = os.getenv("TO_EMAIL")
 FROM_EMAIL = os.getenv("FROM_EMAIL")
-
-# 修改 1: 替换为 Gemini API Key
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-
-# 修改 2: 替换为 Newsdata.io API Key
 NEWSDATA_API_KEY = os.getenv("NEWSDATA_API_KEY") 
-
-# 修改 3: Gemini API URL (使用 Flash 模型，速度快且免费额度高)
-GEMINI_API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+GEMINI_API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={GEMINI_API_KEY}"
 
 # ========== 工具函数 ==========
 
@@ -89,7 +83,7 @@ def fetch_market_data(tickers):
 
 def fetch_news():
     """
-    修改 4: 使用 Newsdata.io 获取当日美国商业/财经新闻标题
+    使用 Newsdata.io 获取当日美国商业/财经新闻标题
     注意：Newsdata.io 免费版每天限制 200 次请求
     """
     if not NEWSDATA_API_KEY:
@@ -179,7 +173,6 @@ def call_llm_analysis(df, news_headlines):
 - 字数不超过 1000 字。
 """
 
-    # Gemini REST API 的 Payload 结构与 OpenAI 不同
     payload = {
         "contents": [{
             "parts": [{"text": prompt}]
@@ -213,7 +206,10 @@ def call_llm_analysis(df, news_headlines):
 
 def build_email_html(df, analysis, bj_now):
     """
-    构建现代、美观且适配手机的 HTML 邮件模板 (无需修改，保持原样)
+    构建适配手机的 HTML 邮件模板
+    - 移除收盘价列
+    - 将行业和涨跌幅合并到名称下方
+    - 移除冗余标签
     """
     date_str = bj_now.strftime("%Y-%m-%d")
     time_str = bj_now.strftime("%Y-%m-%d %H:%M")
@@ -221,18 +217,42 @@ def build_email_html(df, analysis, bj_now):
     # 构建表格 HTML
     rows_html = ""
     for i, row in df.iterrows():
-        color = "#16a34a" if row["pct_change"] > 0 else "#dc2626" if row["pct_change"] < 0 else "#6b7280"
+        # 涨跌幅颜色逻辑
+        if row["pct_change"] > 0:
+            color = "#16a34a" # 绿色
+            sign = "+"
+        elif row["pct_change"] < 0:
+            color = "#dc2626" # 红色
+            sign = ""
+        else:
+            color = "#6b7280" # 灰色
+            sign = ""
+        
+        # 格式化涨跌幅字符串
+        pct_str = f"{sign}{row['pct_change']}%"
+
         rows_html += f"""
         <tr>
-          <td style="padding:8px 6px;font-size:13px;color:#4b5563;">{i+1}</td>
-          <td style="padding:8px 6px;font-size:13px;color:#111827;font-weight:600;">{row['symbol']}</td>
-          <td style="padding:8px 6px;font-size:13px;color:#111827;">{row['name']}</td>
-          <td style="padding:8px 6px;font-size:13px;color:#4b5563;">{row['industry']}</td>
-          <td style="padding:8px 6px;font-size:13px;color:#111827;text-align:right;">{row['close']}</td>
-          <td style="padding:8px 6px;font-size:13px;text-align:right;font-weight:600;color:{color};">
-            {row['pct_change']}%
+          <td style="padding:12px 4px;font-size:13px;color:#9ca3af;vertical-align:middle;text-align:center;width:30px;">
+            {i+1}
+          </td>
+          
+          <td style="padding:12px 8px;font-size:14px;color:#111827;font-weight:700;vertical-align:middle;width:50px;">
+            {row['symbol']}
+          </td>
+          
+          <td style="padding:12px 4px;vertical-align:middle;">
+            <div style="font-size:14px;color:#111827;margin-bottom:2px;line-height:1.4;">
+                {row['name']}
+            </div>
+            <div style="font-size:12px;color:#6b7280;line-height:1.4;">
+                {row['industry']} 
+                <span style="margin:0 4px;color:#e5e7eb;">|</span> 
+                <span style="font-weight:600;color:{color};">{pct_str}</span>
+            </div>
           </td>
         </tr>
+        <tr><td colspan="3" style="border-bottom:1px solid #f3f4f6;"></td></tr>
         """
 
     html = f"""
@@ -243,66 +263,55 @@ def build_email_html(df, analysis, bj_now):
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Top 50 Stocks - {date_str}</title>
 </head>
-<body style="margin:0;padding:0;background-color:#f3f4f6;">
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
   <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
     <tr>
-      <td align="center" style="padding:24px 12px;">
-        <table cellpadding="0" cellspacing="0" width="100%" style="max-width:720px;background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 10px 25px rgba(15,23,42,0.08);">
+      <td align="center" style="padding:12px;">
+        <table cellpadding="0" cellspacing="0" width="100%" style="max-width:600px;background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+          
           <tr>
-            <td style="padding:20px 20px 12px 20px;border-bottom:1px solid #e5e7eb;">
-              <div style="font-size:20px;font-weight:700;color:#111827;">🌸 Top 50 Stocks</div>
-              <div style="margin-top:4px;font-size:12px;color:#6b7280;">Daily Market Pulse · {date_str}</div>
+            <td style="padding:20px;background-color:#1e293b;">
+              <div style="font-size:18px;font-weight:700;color:#ffffff;">🌿 Top 50 Stocks</div>
+              <div style="margin-top:4px;font-size:12px;color:#94a3b8;">{date_str} · Market Pulse</div>
             </td>
           </tr>
 
           <tr>
-            <td style="padding:16px 20px 4px 20px;">
-              <div style="font-size:14px;color:#4b5563;line-height:1.6;">
-                下面是美股市值前 50 名公司在当日收盘时的表现概览（按涨跌幅从高到低排序）：
+            <td style="padding:0 16px;">
+              <table cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;">
+                <thead>
+                  <tr>
+                    <th align="center" style="padding:12px 4px;font-size:11px;color:#9ca3af;font-weight:500;border-bottom:2px solid #f3f4f6;">#</th>
+                    <th align="left" style="padding:12px 8px;font-size:11px;color:#9ca3af;font-weight:500;border-bottom:2px solid #f3f4f6;">Symbol</th>
+                    <th align="left" style="padding:12px 4px;font-size:11px;color:#9ca3af;font-weight:500;border-bottom:2px solid #f3f4f6;">Name / Ind / %</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows_html}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:24px 20px 8px 20px;">
+              <div style="font-size:15px;color:#111827;font-weight:700;margin-bottom:8px;padding-left:10px;border-left:4px solid #3b82f6;">
+                📊 市场归纳分析
               </div>
             </td>
           </tr>
-
           <tr>
-            <td style="padding:8px 16px 16px 16px;">
-              <div style="overflow-x:auto;">
-                <table cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;min-width:600px;">
-                  <thead>
-                    <tr>
-                      <th align="left" style="padding:8px 6px;font-size:12px;color:#6b7280;border-bottom:1px solid #e5e7eb;">#</th>
-                      <th align="left" style="padding:8px 6px;font-size:12px;color:#6b7280;border-bottom:1px solid #e5e7eb;">代码</th>
-                      <th align="left" style="padding:8px 6px;font-size:12px;color:#6b7280;border-bottom:1px solid #e5e7eb;">名称</th>
-                      <th align="left" style="padding:8px 6px;font-size:12px;color:#6b7280;border-bottom:1px solid #e5e7eb;">细分行业</th>
-                      <th align="right" style="padding:8px 6px;font-size:12px;color:#6b7280;border-bottom:1px solid #e5e7eb;">收盘价</th>
-                      <th align="right" style="padding:8px 6px;font-size:12px;color:#6b7280;border-bottom:1px solid #e5e7eb;">涨跌幅</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows_html}
-                  </tbody>
-                </table>
-              </div>
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding:8px 20px 4px 20px;">
-              <div style="font-size:14px;color:#111827;font-weight:600;margin-bottom:4px;">📊 市场归纳分析</div>
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding:4px 20px 20px 20px;">
-              <div style="font-size:14px;color:#4b5563;line-height:1.7;white-space:pre-wrap;">
+            <td style="padding:0 20px 24px 20px;">
+              <div style="font-size:14px;color:#374151;line-height:1.7;white-space:pre-wrap;background-color:#f9fafb;padding:12px;border-radius:8px;">
                 {analysis}
               </div>
             </td>
           </tr>
 
           <tr>
-            <td style="padding:12px 20px 16px 20px;border-top:1px solid #e5e7eb;">
-              <div style="font-size:11px;color:#9ca3af;line-height:1.5;text-align:right;">
-                Data updated at {time_str} (Beijing Time)
+            <td style="padding:16px 20px;background-color:#f8fafc;border-top:1px solid #e2e8f0;text-align:center;">
+              <div style="font-size:11px;color:#94a3b8;">
+                Updated at {time_str} (Beijing Time)
               </div>
             </td>
           </tr>
