@@ -1,42 +1,55 @@
-import requests
+import yfinance as yf
 import pandas as pd
 import json
-from bs4 import BeautifulSoup
+import os
 
-URL = "https://stockanalysis.com/stocks/"
+def update_top_50_tickers():
+    print("正在从维基百科获取 S&P 500 列表...")
+    # 获取 S&P 500 列表作为基础池（覆盖了绝大多数 Top 50）
+    table = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
+    df = table[0]
+    tickers = df['Symbol'].tolist()
+    
+    # 修正一些 yfinance 无法识别的符号（如 BRK.B -> BRK-B）
+    tickers = [t.replace('.', '-') for t in tickers]
 
-def fetch_top_50():
-    """抓取美股市值前 50 名公司"""
-    resp = requests.get(URL, timeout=20)
-    resp.raise_for_status()
+    print(f"正在获取 {len(tickers)} 家公司的市值数据...")
+    data_list = []
+    
+    # 分批获取数据以提高效率
+    for i in range(0, len(tickers), 50):
+        batch = tickers[i:i+50]
+        for symbol in batch:
+            try:
+                ticker_obj = yf.Ticker(symbol)
+                info = ticker_obj.info
+                
+                market_cap = info.get('marketCap', 0)
+                if market_cap:
+                    data_list.append({
+                        "symbol": symbol.replace('-', '.'), # 换回原始格式
+                        "name": info.get('longName', ''),
+                        "industry": info.get('industry', ''),
+                        "marketCap": market_cap
+                    })
+            except Exception as e:
+                print(f"无法获取 {symbol} 的数据: {e}")
 
-    soup = BeautifulSoup(resp.text, "html.parser")
-    table = soup.find("table")
+    # 按市值降序排列并取前 50
+    data_list.sort(key=lambda x: x['marketCap'], reverse=True)
+    top_50 = data_list[:50]
 
-    rows = []
-    for tr in table.find("tbody").find_all("tr")[:50]:
-        cols = tr.find_all("td")
-        symbol = cols[0].text.strip()
-        name = cols[1].text.strip()
-        industry = cols[3].text.strip() if len(cols) > 3 else "Unknown"
+    # 格式化为最终输出格式（剔除 marketCap 字段，保持与你原始格式一致）
+    final_output = [
+        {"symbol": x['symbol'], "name": x['name'], "industry": x['industry']} 
+        for x in top_50
+    ]
 
-        rows.append({
-            "symbol": symbol,
-            "name": name,
-            "industry": industry
-        })
-
-    return rows
-
-def save_json(data):
-    with open("tickers.json", "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-
-def main():
-    print("Fetching top 50 US companies by market cap...")
-    data = fetch_top_50()
-    save_json(data)
-    print("tickers.json updated successfully.")
+    # 写入文件
+    with open('tickers.json', 'w', encoding='utf-8') as f:
+        json.dump(final_output, f, indent=2, ensure_ascii=False)
+    
+    print(f"成功更新 tickers.json，共 {len(final_output)} 个代码。")
 
 if __name__ == "__main__":
-    main()
+    update_top_50_tickers()
