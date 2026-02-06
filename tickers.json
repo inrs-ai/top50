@@ -1,0 +1,28 @@
+[
+  {
+    "symbol": "AAPL",
+    "name": "Apple Inc.",
+    "industry": "Consumer Electronics"
+  },
+  {
+    "symbol": "MSFT",
+    "name": "Microsoft Corporation",
+    "industry": "Software—Infrastructure"
+  },
+  {
+    "symbol": "GOOGL",
+    "name": "Alphabet Inc. Class A",
+    "industry": "Internet Content & Information"
+  },
+  {
+    "symbol": "AMZN",
+    "name": "Amazon.com, Inc.",
+    "industry": "Internet Retail"
+  },
+  {
+    "symbol": "NVDA",
+    "name": "NVIDIA Corporation",
+    "industry": "Semiconductors"
+  }
+  // ... 请补全到 50 家
+]
