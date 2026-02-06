@@ -26,20 +26,21 @@ jobs:
           import os
           import requests
           api_key = os.getenv('GEMINI_API_KEY')
-          url = f'https://generativelanguage.googleapis.com/v1beta/models?key={api_key}'
+          url = 'https://generativelanguage.googleapis.com/v1beta/models?key=' + api_key
           try:
               response = requests.get(url)
               if response.status_code == 200:
                   models = response.json().get('models', [])
-                  print('\n' + '='*30)
-                  print('你可以使用的模型列表：')
+                  print('\n' + '='*50)
+                  print('AVAILABLE MODELS:')
                   for m in models:
                       if 'generateContent' in m.get('supportedGenerationMethods', []):
-                          print(f'- {m.get(\'name\')}')
-                  print('='*30)
+                          # 避免在 f-string 中使用转义符，直接使用 print 逗号分隔
+                          print('-', m.get('name'))
+                  print('='*50)
               else:
-                  print(f'请求失败: {response.status_code}')
+                  print('Error:', response.status_code)
                   print(response.text)
           except Exception as e:
-              print(f'发生错误: {e}')
+              print('Exception:', str(e))
           "
