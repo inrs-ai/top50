@@ -1,36 +1,35 @@
-name: Update Top 50 Tickers Monthly
+name: Monthly Tickers Update
 
 on:
   schedule:
-    - cron: "26 21 6 * *" 
-  workflow_dispatch: {}
+    - cron: '26 21 6 * *'
+  workflow_dispatch:
 
 jobs:
-  update-tickers:
+  update:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |
-          pip install requests beautifulsoup4 pandas
+          pip install yfinance pandas lxml html5lib
 
       - name: Run update script
         run: python update_tickers.py
 
       - name: Commit and push changes
         run: |
-          git config --local user.email "github-actions@github.com"
-          git config --local user.name "GitHub Actions"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
           git add tickers.json
-          git commit -m "Auto-update top 50 tickers" || echo "No changes to commit"
-          git push
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: auto-update tickers.json $(date +%F)" && git push)
