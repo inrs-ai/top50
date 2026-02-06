@@ -2,9 +2,6 @@ name: Market Pulse Daily Email
 
 on:
   schedule:
-    # GitHub 使用 UTC 时间
-    # 北京时间 07:06 = 前一天 23:06 UTC
-    # 北京时间 周二至周六 → UTC 周一至周五
     - cron: "6 23 * * 1-5"
   workflow_dispatch: {}
 
@@ -31,7 +28,7 @@ jobs:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           TO_EMAIL: ${{ secrets.TO_EMAIL }}
           FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          NEWSDATA_API_KEY: ${{ secrets.NEWSDATA_API_KEY }}
         run: |
           python main.py
