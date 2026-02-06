@@ -1,0 +1,36 @@
+name: Update Top 50 Tickers Monthly
+
+on:
+  schedule:
+    - cron: "26 21 6 * *" 
+  workflow_dispatch: {}
+
+jobs:
+  update-tickers:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install requests beautifulsoup4 pandas
+
+      - name: Run update script
+        run: python update_tickers.py
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "github-actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add tickers.json
+          git commit -m "Auto-update top 50 tickers" || echo "No changes to commit"
+          git push
