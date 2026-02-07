@@ -3,6 +3,7 @@ import json
 import requests
 import yfinance as yf
 import pandas as pd
+import markdown
 from datetime import datetime, timedelta, timezone
 
 # ========== 配置部分 ==========
@@ -11,7 +12,7 @@ RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 TO_EMAIL = os.getenv("TO_EMAIL")
 FROM_EMAIL = os.getenv("FROM_EMAIL")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-NEWSDATA_API_KEY = os.getenv("NEWSDATA_API_KEY") 
+NEWSDATA_API_KEY = os.getenv("NEWSDATA_API_KEY")
 GEMINI_API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={GEMINI_API_KEY}"
 
 # ========== 工具函数 ==========
@@ -24,6 +25,10 @@ def get_beijing_now():
 
 def load_tickers():
     """加载 tickers.json 中的公司列表"""
+    if not os.path.exists("tickers.json"):
+        print("Warning: tickers.json not found.")
+        return []
+        
     with open("tickers.json", "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -32,16 +37,24 @@ def fetch_market_data(tickers):
     使用 yfinance 获取当日收盘价和涨跌幅
     返回 DataFrame: [symbol, name, industry, close, pct_change]
     """
+    if not tickers:
+        return pd.DataFrame()
+
     symbols = [t["symbol"] for t in tickers]
-    # 使用 yfinance 批量下载最近 3 天数据（确保涵盖周末/节假日逻辑）
-    data = yf.download(
-        tickers=" ".join(symbols),
-        period="3d",
-        interval="1d",
-        group_by="ticker",
-        auto_adjust=False,
-        threads=True
-    )
+    
+    # 使用 yfinance 批量下载最近 5 天数据（增加天数以防长假）
+    try:
+        data = yf.download(
+            tickers=" ".join(symbols),
+            period="5d",
+            interval="1d",
+            group_by="ticker",
+            auto_adjust=False,
+            threads=True
+        )
+    except Exception as e:
+        print(f"yfinance download error: {e}")
+        return pd.DataFrame()
 
     rows = []
     for t in tickers:
@@ -50,9 +63,13 @@ def fetch_market_data(tickers):
         industry = t["industry"]
 
         try:
+            # 处理多层级索引或单层级索引
             if len(symbols) == 1:
                 df = data
             else:
+                # 检查 symbol 是否在列中
+                if symbol not in data.columns.levels[0]:
+                    continue
                 df = data[symbol]
 
             df = df.dropna()
@@ -74,7 +91,8 @@ def fetch_market_data(tickers):
                 "pct_change": round(pct_change, 2)
             })
         except Exception as e:
-            print(f"Error fetching data for {symbol}: {e}")
+            # 静默失败，继续处理下一个
+            continue
 
     df_result = pd.DataFrame(rows)
     if not df_result.empty:
@@ -84,7 +102,6 @@ def fetch_market_data(tickers):
 def fetch_news():
     """
     使用 Newsdata.io 获取当日美国商业/财经新闻标题
-    注意：Newsdata.io 免费版每天限制 200 次请求
     """
     if not NEWSDATA_API_KEY:
         return []
@@ -95,19 +112,17 @@ def fetch_news():
         "country": "us",
         "category": "business",
         "language": "en",
-        "size": 10  # 限制返回条数，节省 token 和阅读量
+        "size": 15  # 限制返回条数，避免 Token 超限
     }
     try:
         resp = requests.get(url, params=params, timeout=15)
         resp.raise_for_status()
         data = resp.json()
         
-        # Newsdata.io 的返回结构是 'results' 列表
         articles = data.get("results", [])
         headlines = []
         for a in articles:
             title = a.get("title")
-            # source_id 通常是媒体名称 (如 cnn, bloomberg)
             source = a.get("source_id", "Unknown")
             if title:
                 headlines.append(f"{title} ({source})")
@@ -118,7 +133,7 @@ def fetch_news():
 
 def build_stocks_markdown(df):
     """
-    将股票数据转为文本表格，供 AI 分析 & 邮件展示
+    将股票数据转为文本表格，供 AI 分析
     """
     lines = []
     lines.append("排名 | 代码 | 名称 | 细分行业 | 收盘价 | 涨跌幅(%)")
@@ -131,10 +146,9 @@ def build_stocks_markdown(df):
 
 def call_llm_analysis(df, news_headlines):
     """
-    修改 5: 调用 Google Gemini API
+    调用 Google Gemini API
     """
     if not GEMINI_API_KEY:
-        print("GEMINI_API_KEY not set, skip AI analysis.")
         return "（未配置 GEMINI_API_KEY，暂无法生成 AI 分析。）"
 
     stocks_table = build_stocks_markdown(df)
@@ -145,6 +159,7 @@ def call_llm_analysis(df, news_headlines):
             [f"- {h}" for h in news_headlines]
         )
 
+    # 提示词微调：要求使用 Markdown 格式
     prompt = f"""
 你是一名专业的全球宏观与行业分析师。
 
@@ -167,10 +182,8 @@ def call_llm_analysis(df, news_headlines):
 - 对未来短期市场可能的演绎路径，给出审慎的观察要点（而非投资建议）。
 
 要求：
-- 使用中文撰写；
-- 结构清晰，有小标题或分段；
-- 语言专业但通俗易懂；
-- 字数不超过 1000 字。
+1. **使用 Markdown 格式**（使用 ### 作为小标题，**加粗**重点，- 列表项）；
+2. 结构清晰，语言专业简练，中文撰写，字数 1200 字以内。
 """
 
     payload = {
@@ -178,81 +191,75 @@ def call_llm_analysis(df, news_headlines):
             "parts": [{"text": prompt}]
         }],
         "generationConfig": {
-            "temperature": 0.6
+            "temperature": 1.0
         }
     }
 
-    headers = {
-        "Content-Type": "application/json"
-    }
+    headers = {"Content-Type": "application/json"}
 
     try:
-        # 这里的 URL 已经在配置部分包含了 API Key
         resp = requests.post(GEMINI_API_URL, headers=headers, json=payload, timeout=60)
         resp.raise_for_status()
         data = resp.json()
-        
-        # 解析 Gemini 的响应结构
         content = data["candidates"][0]["content"]["parts"][0]["text"]
         return content.strip()
     except Exception as e:
         print(f"Error calling Gemini: {e}")
-        # 如果出错，打印详细信息以便调试
-        try:
-            print(resp.text)
-        except:
-            pass
         return "（AI 分析生成失败，请检查 LLM 配置或稍后重试。）"
 
-def build_email_html(df, analysis, bj_now):
+def build_email_html(df, analysis_text, bj_now):
     """
     构建适配手机的 HTML 邮件模板
-    - 移除收盘价列
-    - 将行业和涨跌幅合并到名称下方
-    - 移除冗余标签
     """
     date_str = bj_now.strftime("%Y-%m-%d")
     time_str = bj_now.strftime("%Y-%m-%d %H:%M")
+
+    # ========== 将 Markdown 转换为 HTML ==========
+    # 使用 extensions 增强列表和换行处理
+    analysis_html = markdown.markdown(analysis_text, extensions=['nl2br', 'sane_lists'])
 
     # 构建表格 HTML
     rows_html = ""
     for i, row in df.iterrows():
         # 涨跌幅颜色逻辑
-        if row["pct_change"] > 0:
+        pct = row["pct_change"]
+        if pct > 0:
             color = "#16a34a" # 绿色
             sign = "+"
-        elif row["pct_change"] < 0:
+            bg_color = "#f0fdf4" # 浅绿背景
+        elif pct < 0:
             color = "#dc2626" # 红色
             sign = ""
+            bg_color = "#fef2f2" # 浅红背景
         else:
             color = "#6b7280" # 灰色
             sign = ""
+            bg_color = "transparent"
         
-        # 格式化涨跌幅字符串
-        pct_str = f"{sign}{row['pct_change']}%"
+        pct_str = f"{sign}{pct}%"
 
         rows_html += f"""
         <tr>
-          <td style="padding:12px 4px;font-size:13px;color:#9ca3af;vertical-align:middle;text-align:center;width:30px;">
+          <td style="padding:12px 4px;font-size:13px;color:#9ca3af;text-align:center;width:30px;border-bottom:1px solid #f3f4f6;">
             {i+1}
           </td>
           
-          <td style="padding:12px 8px;font-size:14px;color:#111827;font-weight:700;vertical-align:middle;width:50px;">
+          <td style="padding:12px 8px;font-size:14px;color:#111827;font-weight:700;width:50px;border-bottom:1px solid #f3f4f6;">
             {row['symbol']}
           </td>
           
-          <td style="padding:12px 4px;vertical-align:middle;">
-            <div style="font-size:14px;color:#111827;margin-bottom:2px;line-height:1.4;">
+          <td style="padding:12px 4px;border-bottom:1px solid #f3f4f6;">
+            <div style="font-size:14px;color:#111827;margin-bottom:2px;">
                 {row['name']}
             </div>
-            <div style="font-size:12px;color:#6b7280;line-height:1.4;">
+            <div style="font-size:12px;color:#6b7280;">
                 {row['industry']} 
-                <span style="margin:0 4px;color:#e5e7eb;">|</span> 
-                <span style="font-weight:600;color:{color};">{pct_str}</span>
+                <span style="display:inline-block;margin-left:8px;padding:2px 6px;border-radius:4px;font-weight:600;color:{color};background-color:{bg_color};font-size:11px;">
+                    {pct_str}
+                </span>
             </div>
           </td>
         </tr>
-        <tr><td colspan="3" style="border-bottom:1px solid #f3f4f6;"></td></tr>
         """
 
     html = f"""
@@ -262,6 +269,42 @@ def build_email_html(df, analysis, bj_now):
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Top 50 Stocks - {date_str}</title>
+  <style>
+    /* 针对 AI 分析生成的 HTML 进行样式美化 */
+    .markdown-body h1, .markdown-body h2, .markdown-body h3 {{
+        color: #111827;
+        margin-top: 24px;
+        margin-bottom: 12px;
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 1.4;
+    }}
+    .markdown-body p {{
+        margin-bottom: 16px;
+        line-height: 1.7;
+        color: #374151;
+    }}
+    .markdown-body ul, .markdown-body ol {{
+        margin-bottom: 16px;
+        padding-left: 20px;
+        color: #374151;
+    }}
+    .markdown-body li {{
+        margin-bottom: 6px;
+        line-height: 1.6;
+    }}
+    .markdown-body strong {{
+        color: #000000;
+        font-weight: 700;
+    }}
+    .markdown-body blockquote {{
+        border-left: 4px solid #e5e7eb;
+        padding-left: 16px;
+        margin-left: 0;
+        color: #6b7280;
+        font-style: italic;
+    }}
+  </style>
 </head>
 <body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
   <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
@@ -270,9 +313,9 @@ def build_email_html(df, analysis, bj_now):
         <table cellpadding="0" cellspacing="0" width="100%" style="max-width:600px;background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,0.05);">
           
           <tr>
-            <td style="padding:20px;background-color:#1e293b;">
-              <div style="font-size:18px;font-weight:700;color:#ffffff;">🌿 Top 50 Stocks</div>
-              <div style="margin-top:4px;font-size:12px;color:#94a3b8;">{date_str} · Market Pulse</div>
+            <td style="padding:24px;background-color:#1e293b;">
+              <div style="font-size:20px;font-weight:700;color:#ffffff;">🌿 Market Pulse</div>
+              <div style="margin-top:4px;font-size:13px;color:#94a3b8;">Top 50 US Stocks · {date_str}</div>
             </td>
           </tr>
 
@@ -294,24 +337,24 @@ def build_email_html(df, analysis, bj_now):
           </tr>
 
           <tr>
-            <td style="padding:24px 20px 8px 20px;">
-              <div style="font-size:15px;color:#111827;font-weight:700;margin-bottom:8px;padding-left:10px;border-left:4px solid #3b82f6;">
-                📊 市场归纳分析
+            <td style="padding:32px 20px 8px 20px;">
+              <div style="font-size:16px;color:#111827;font-weight:700;margin-bottom:16px;padding-left:10px;border-left:4px solid #3b82f6;">
+                📊 市场归纳分析 (AI)
               </div>
             </td>
           </tr>
           <tr>
-            <td style="padding:0 20px 24px 20px;">
-              <div style="font-size:14px;color:#374151;line-height:1.7;white-space:pre-wrap;background-color:#f9fafb;padding:12px;border-radius:8px;">
-                {analysis}
+            <td style="padding:0 20px 32px 20px;">
+              <div class="markdown-body" style="font-size:14px;background-color:#f9fafb;padding:16px;border-radius:8px;">
+                {analysis_html}
               </div>
             </td>
           </tr>
 
           <tr>
-            <td style="padding:16px 20px;background-color:#f8fafc;border-top:1px solid #e2e8f0;text-align:center;">
-              <div style="font-size:11px;color:#94a3b8;">
-                Updated at {time_str} (Beijing Time)
+            <td style="padding:20px;background-color:#f8fafc;border-top:1px solid #e2e8f0;text-align:center;">
+              <div style="font-size:12px;color:#94a3b8;">
+                Generated at {time_str} (Beijing Time)
               </div>
             </td>
           </tr>
@@ -329,8 +372,11 @@ def send_email(subject, html_body):
     """
     使用 Resend API 发送邮件
     """
-    if not RESEND_API_KEY or not TO_EMAIL or not FROM_EMAIL:
-        raise RuntimeError("RESEND_API_KEY / TO_EMAIL / FROM_EMAIL 未正确配置。")
+    if not RESEND_API_KEY:
+        print("RESEND_API_KEY missing, skipping email.")
+        # 如果是本地测试，可以将 html_body 写入文件查看效果
+        # with open("test_email.html", "w", encoding="utf-8") as f: f.write(html_body)
+        return
 
     url = "https://api.resend.com/emails"
     headers = {
@@ -344,43 +390,51 @@ def send_email(subject, html_body):
         "html": html_body
     }
 
-    resp = requests.post(url, headers=headers, json=payload, timeout=30)
     try:
+        resp = requests.post(url, headers=headers, json=payload, timeout=30)
         resp.raise_for_status()
         print("Email sent successfully.")
     except Exception as e:
-        print("Failed to send email:", resp.text)
-        raise e
+        print(f"Failed to send email: {e}")
+        if hasattr(resp, 'text'):
+            print(resp.text)
 
 # ========== 主流程 ==========
 
 def main():
-    # 第一步：加载美股市值前 50 名公司名单
+    print("Starting process...")
+    # 1. 加载名单
     tickers = load_tickers()
-
-    # 第二步 & 第三步：获取当日收盘数据
-    df = fetch_market_data(tickers)
-    if df.empty:
-        print("No market data fetched. Abort.")
+    if not tickers:
+        print("Ticker list is empty.")
         return
 
-    # 获取新闻
+    # 2. 获取数据
+    print("Fetching market data...")
+    df = fetch_market_data(tickers)
+    if df.empty:
+        print("No market data fetched.")
+        return
+
+    # 3. 获取新闻
+    print("Fetching news...")
     news_headlines = fetch_news()
 
-    # 第四步：调用 Gemini 进行归纳分析
-    analysis = call_llm_analysis(df, news_headlines)
+    # 4. AI 分析
+    print("Analyzing with Gemini...")
+    analysis_text = call_llm_analysis(df, news_headlines)
 
-    # 时间 & 标题
+    # 5. 构建邮件
     bj_now = get_beijing_now()
     date_str = bj_now.strftime("%Y-%m-%d")
     subject = f"🌸 Top 50 Stocks - {date_str}"
+    
+    html_body = build_email_html(df, analysis_text, bj_now)
 
-    # 构建 HTML 邮件
-    html_body = build_email_html(df, analysis, bj_now)
-
-    # 第五步 & 第六步：发送邮件
+    # 6. 发送
+    print("Sending email...")
     send_email(subject, html_body)
-
+    print("Done.")
 
 if __name__ == "__main__":
     main()
