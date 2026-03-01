@@ -1,35 +1,35 @@
-name: Monthly Tickers Update
+name: 每月更新美股 Top 50
 
 on:
   schedule:
-    - cron: '26 21 3 * *'
-  workflow_dispatch:
+    - cron: '26 21 3 * *' 
+  workflow_dispatch:         # 支持手动触发
 
 jobs:
   update:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
+    
     steps:
-      - name: Checkout repository
+      - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: 安装 Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
-        run: |
-          pip install yfinance pandas lxml html5lib
+      - name: 安装依赖
+        run: pip install requests
 
-      - name: Run update script
+      - name: 执行更新脚本
+        env:
+          FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
         run: python update_tickers.py
 
-      - name: Commit and push changes
+      - name: 提交变更
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add tickers.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: auto-update tickers.json $(date +%F)" && git push)
+          git commit --allow-empty -m "chore: 更新美股市值 Top 50 ($(date +%Y-%m-%d))"
+          git push
