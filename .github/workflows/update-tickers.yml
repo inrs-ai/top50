@@ -11,6 +11,7 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: 检出代码
@@ -22,11 +23,9 @@ jobs:
           python-version: '3.11'
 
       - name: 安装依赖
-        run: pip install requests pandas lxml
+        run: pip install requests beautifulsoup4 pandas lxml
 
       - name: 执行更新脚本
-        env:
-          FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
         run: python update_tickers.py
 
       - name: 提交变更
