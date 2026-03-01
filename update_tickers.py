@@ -74,12 +74,25 @@ def sym_from_fmp(symbol: str) -> str:
 def fetch_sp500_from_wikipedia() -> dict:
     """
     从维基百科获取 S&P 500 成分股
-    返回 {symbol: {name, industry}}，symbol 为维基百科原始格式
+    返回 {symbol: {name, industry}}
     """
     print("步骤 1: 从维基百科获取 S&P 500 成分股列表...")
 
     url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
-    tables = pd.read_html(url)
+
+    # ===== 手动设置 User-Agent =====
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/131.0.0.0 Safari/537.36"
+        )
+    }
+    resp = requests.get(url, headers=headers, timeout=30)
+    resp.raise_for_status()
+
+    # 将下载好的 HTML 文本交给 pandas 解析
+    tables = pd.read_html(resp.text)
     df = tables[0]
 
     wiki_data = {}
