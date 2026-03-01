@@ -14,21 +14,21 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: 检出代码
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: 安装 Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: 安装依赖
+      - name: Install dependencies
         run: pip install requests beautifulsoup4 pandas lxml
 
-      - name: 执行更新脚本
+      - name: Run update script
         run: python update_tickers.py
 
-      - name: 提交变更
+      - name: Commit and push changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
