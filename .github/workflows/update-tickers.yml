@@ -1,9 +1,9 @@
-name: 每月更新美股 Top 50
+name: Monthly Tickers Update
 
 on:
   schedule:
     - cron: '26 21 3 * *'
-  workflow_dispatch:         # 支持手动触发
+  workflow_dispatch:
 
 jobs:
   update:
