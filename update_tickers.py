@@ -19,6 +19,7 @@ import sys
 import shutil
 import time
 from datetime import datetime
+from io import StringIO
 
 # ======================== 配置 ========================
 FMP_API_KEY = os.environ.get("FMP_API_KEY", "")
@@ -92,7 +93,7 @@ def fetch_sp500_from_wikipedia() -> dict:
     resp.raise_for_status()
 
     # 将下载好的 HTML 文本交给 pandas 解析
-    tables = pd.read_html(resp.text)
+    tables = pd.read_html(StringIO(resp.text))
     df = tables[0]
 
     wiki_data = {}
