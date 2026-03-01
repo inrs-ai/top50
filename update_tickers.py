@@ -1,193 +1,137 @@
 """
 update_tickers.py
-使用 Financial Modeling Prep (FMP) 免费 API 更新美股市值 Top 50 列表
-工作流程：
-  1. 从维基百科获取 S&P 500 成分股列表（免费、稳定）
-  2. 通过 FMP /quote 批量接口获取各股市值（免费计划可用）
-  3. 按市值降序排列，取前 50 名
-  4. 通过 FMP /profile 批量接口获取公司名称和行业
-  5. 写入 tickers.json
-依赖：pip install requests pandas lxml
-环境变量：FMP_API_KEY
+
+数据来源：
+  排名 + symbol + name → companiesmarketcap.com（1 次请求）
+  industry             → 维基百科 S&P 500 表格 （1 次请求）
+
+总计 2 次 HTTP 请求，耗时 2-3 秒，无需任何 API Key
+
+依赖：pip install requests beautifulsoup4 pandas lxml
 """
 
 import requests
+from bs4 import BeautifulSoup
 import pandas as pd
 import json
 import os
 import sys
 import shutil
-import time
-from datetime import datetime
 from io import StringIO
+from datetime import datetime
+
 
 # ======================== 配置 ========================
-FMP_API_KEY = os.environ.get("FMP_API_KEY", "")
-FMP_BASE = "https://financialmodelingprep.com/api/v3"
 OUTPUT_FILE = "tickers.json"
 BACKUP_FILE = "tickers.json.bak"
 TOP_N = 50
-BATCH_SIZE = 30          # 每批查询的股票数
-REQUEST_DELAY = 0.4      # 批次间隔（秒）
+
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/131.0.0.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/xhtml+xml",
+    "Accept-Language": "en-US,en;q=0.9",
+}
 
 
-# ======================== 工具函数 ========================
+# ======================== 数据抓取 ========================
 
-def fmp_get(endpoint: str) -> list:
+def fetch_top_n_from_cmc(n: int = TOP_N) -> list:
     """
-    FMP API 通用 GET 请求
-    自动附带 apikey，统一处理错误
+    从 companiesmarketcap.com 抓取美股市值前 N 名
+    返回 [{"symbol": "AAPL", "name": "Apple"}, ...]
     """
-    url = f"{FMP_BASE}/{endpoint}"
-    params = {"apikey": FMP_API_KEY}
+    print(f"步骤 1/3: 从 companiesmarketcap.com 获取市值排名...")
 
-    resp = requests.get(url, params=params, timeout=30)
+    url = ("https://companiesmarketcap.com/usa/"
+           "largest-companies-in-the-usa-by-market-cap/")
 
-    if resp.status_code == 403:
-        raise PermissionError(
-            f"FMP 返回 403（{endpoint}）\n"
-            "    该接口可能不在免费计划内，请确认你的订阅等级。\n"
-            "    免费计划支持的接口: quote, profile 等基础接口\n"
-            "    不支持的接口: stock-screener, bulk 等高级接口"
-        )
+    resp = requests.get(url, headers=HEADERS, timeout=30)
     resp.raise_for_status()
 
-    data = resp.json()
+    soup = BeautifulSoup(resp.text, "lxml")
 
-    if isinstance(data, dict) and "Error Message" in data:
-        raise ValueError(f"FMP 错误: {data['Error Message']}")
+    # ---- 解析策略 ----
+    # 该网站的每行公司信息包含:
+    #   .company-name  → 公司名称
+    #   .company-code  → 股票代码
+    # 它们按市值降序排列，直接取前 N 个即可
 
-    return data if isinstance(data, list) else []
+    name_tags = soup.select(".company-name")
+    code_tags = soup.select(".company-code")
+
+    # ---- 解析失败时输出诊断信息 ----
+    if not name_tags or not code_tags:
+        # 可能页面结构已变更，输出线索帮助排查
+        all_classes = set()
+        for tag in soup.find_all(True, class_=True):
+            for cls in tag.get("class", []):
+                if "company" in cls.lower() or "name" in cls.lower():
+                    all_classes.add(cls)
+        print(f"  ⚠ .company-name/.company-code 选择器失效")
+        print(f"  页面中包含 'company/name' 的 class: {all_classes or '无'}")
+        raise ValueError(
+            "无法解析 companiesmarketcap.com，页面结构可能已变更"
+        )
+
+    results = []
+    for name_tag, code_tag in zip(name_tags, code_tags):
+        symbol = code_tag.get_text(strip=True)
+        name = name_tag.get_text(strip=True)
+        if symbol and name:
+            results.append({"symbol": symbol, "name": name})
+        if len(results) >= n:
+            break
+
+    print(f"  ✔ 获取到前 {len(results)} 名公司")
+
+    if results:
+        print(f"  第 1 名: {results[0]['symbol']} ({results[0]['name']})")
+        print(f"  第{len(results):>2} 名: "
+              f"{results[-1]['symbol']} ({results[-1]['name']})")
+
+    return results
 
 
-def sym_to_fmp(symbol: str) -> str:
-    """维基百科格式 → FMP 格式：BRK.B → BRK-B"""
-    return symbol.replace(".", "-")
-
-
-def sym_from_fmp(symbol: str) -> str:
-    """FMP 格式 → 标准格式：BRK-B → BRK.B"""
-    return symbol.replace("-", ".")
-
-
-# ======================== 数据获取 ========================
-
-def fetch_sp500_from_wikipedia() -> dict:
+def fetch_industry_from_wikipedia() -> dict:
     """
-    从维基百科获取 S&P 500 成分股
-    返回 {symbol: {name, industry}}
+    从维基百科获取 S&P 500 行业分类映射表
+    返回 {"AAPL": "Technology Hardware, Storage & Peripherals", ...}
     """
-    print("步骤 1: 从维基百科获取 S&P 500 成分股列表...")
+    print(f"\n步骤 2/3: 从维基百科获取行业分类...")
 
     url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
-
-    # ===== 手动设置 User-Agent =====
-    headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/131.0.0.0 Safari/537.36"
-        )
-    }
-    resp = requests.get(url, headers=headers, timeout=30)
+    resp = requests.get(url, headers=HEADERS, timeout=30)
     resp.raise_for_status()
 
-    # 将下载好的 HTML 文本交给 pandas 解析
     tables = pd.read_html(StringIO(resp.text))
     df = tables[0]
 
-    wiki_data = {}
+    industry_map = {}
     for _, row in df.iterrows():
         symbol = str(row["Symbol"]).strip()
-        wiki_data[symbol] = {
-            "name": str(row.get("Security", "")).strip(),
-            "industry": str(row.get("GICS Sub-Industry", "")).strip(),
-        }
+        industry = str(row.get("GICS Sub-Industry", "")).strip()
+        industry_map[symbol] = industry
 
-    print(f"  ✔ 获取到 {len(wiki_data)} 个成分股")
-    return wiki_data
+    print(f"  ✔ 获取到 {len(industry_map)} 个行业分类")
+    return industry_map
 
 
-def fetch_market_caps(symbols: list) -> dict:
+# ======================== 辅助函数 ========================
+
+def normalize_symbol(symbol: str) -> str:
     """
-    使用 FMP /quote/{batch} 批量获取市值
-    参数：symbols 为维基百科格式的 symbol 列表
-    返回：{fmp_symbol: market_cap}
+    统一符号格式，处理不同来源的差异
+    companiesmarketcap 可能用 BRK-B，维基百科用 BRK.B
     """
-    fmp_syms = [sym_to_fmp(s) for s in symbols]
-    results = {}
-    total_batches = (len(fmp_syms) + BATCH_SIZE - 1) // BATCH_SIZE
+    return symbol.replace("-", ".").strip()
 
-    print(f"\n步骤 2: 通过 FMP /quote 获取市值（共 {total_batches} 批）...")
-
-    for i in range(0, len(fmp_syms), BATCH_SIZE):
-        batch = fmp_syms[i : i + BATCH_SIZE]
-        batch_num = i // BATCH_SIZE + 1
-        batch_str = ",".join(batch)
-
-        try:
-            data = fmp_get(f"quote/{batch_str}")
-            for item in data:
-                sym = item.get("symbol", "")
-                mc = item.get("marketCap") or 0
-                if sym and mc > 0:
-                    results[sym] = mc
-        except PermissionError:
-            raise                          # 权限错误，直接终止
-        except Exception as e:
-            print(f"  ⚠ 批次 {batch_num} 失败: {e}")
-
-        # 进度显示
-        if batch_num % 5 == 0 or batch_num == total_batches:
-            print(f"  进度: {batch_num}/{total_batches} 批, "
-                  f"已获取 {len(results)} 个市值")
-
-        time.sleep(REQUEST_DELAY)
-
-    print(f"  ✔ 共获取到 {len(results)} 个有效市值")
-    return results
-
-
-def fetch_profiles(fmp_symbols: list) -> dict:
-    """
-    使用 FMP /profile/{batch} 获取公司名称和行业
-    返回：{fmp_symbol: {name, industry}}
-    """
-    results = {}
-    total_batches = (len(fmp_symbols) + BATCH_SIZE - 1) // BATCH_SIZE
-
-    print(f"\n步骤 3: 通过 FMP /profile 获取 Top {TOP_N} 详情"
-          f"（共 {total_batches} 批）...")
-
-    for i in range(0, len(fmp_symbols), BATCH_SIZE):
-        batch = fmp_symbols[i : i + BATCH_SIZE]
-        batch_str = ",".join(batch)
-
-        try:
-            data = fmp_get(f"profile/{batch_str}")
-            for item in data:
-                sym = item.get("symbol", "")
-                if sym:
-                    results[sym] = {
-                        "name": item.get("companyName", ""),
-                        "industry": item.get("industry", ""),
-                    }
-        except PermissionError:
-            print("  ⚠ /profile 接口不可用，将使用维基百科数据替代")
-            break
-        except Exception as e:
-            print(f"  ⚠ profile 批次失败: {e}")
-
-        time.sleep(REQUEST_DELAY)
-
-    print(f"  ✔ 获取到 {len(results)} 个公司详情")
-    return results
-
-
-# ======================== 对比与输出 ========================
 
 def show_diff(old_file: str, new_data: list):
-    """对比新旧数据，打印成分股变动"""
+    """对比新旧列表的成分股变动"""
     if not os.path.exists(old_file):
         return
 
@@ -200,7 +144,7 @@ def show_diff(old_file: str, new_data: list):
     old_set = {item["symbol"] for item in old_data}
     new_set = {item["symbol"] for item in new_data}
 
-    added = sorted(new_set - old_set)
+    added   = sorted(new_set - old_set)
     removed = sorted(old_set - new_set)
 
     if added:
@@ -208,98 +152,89 @@ def show_diff(old_file: str, new_data: list):
     if removed:
         print(f"  📉 退出 Top {TOP_N}: {', '.join(removed)}")
     if not added and not removed:
-        print(f"  成分股无变化（排名可能有调整）")
+        print(f"  ✔ 成分股无变化（排名可能有调整）")
 
 
 # ======================== 主流程 ========================
 
 def main():
     print("=" * 56)
-    print(f"  美股市值 Top {TOP_N} 更新工具 (FMP API)")
+    print(f"  美股市值 Top {TOP_N} 更新工具")
     print(f"  {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 56)
 
-    # ---- 0. 检查 API Key ----
-    if not FMP_API_KEY:
-        print("\n❌ 未设置 FMP_API_KEY 环境变量")
-        print("   export FMP_API_KEY=你的密钥")
-        sys.exit(1)
-
-    # ---- 1. 备份旧文件 ----
+    # ---- 0. 备份旧文件 ----
     if os.path.exists(OUTPUT_FILE):
         shutil.copy2(OUTPUT_FILE, BACKUP_FILE)
         print(f"\n已备份 {OUTPUT_FILE} → {BACKUP_FILE}")
 
-    # ---- 2. 获取 S&P 500 列表 ----
+    # ---- 1. 获取市值排名 ----
     try:
-        wiki_data = fetch_sp500_from_wikipedia()
+        top_list = fetch_top_n_from_cmc(TOP_N)
     except Exception as e:
-        print(f"\n❌ 获取 S&P 500 列表失败: {e}")
-        return
+        print(f"\n❌ 获取市值排名失败: {e}")
+        sys.exit(1)
 
-    symbols = list(wiki_data.keys())
+    if len(top_list) < TOP_N:
+        print(f"\n❌ 仅获取到 {len(top_list)} 条，不足 {TOP_N}，终止更新")
+        sys.exit(1)
 
-    # ---- 3. 获取市值 ----
+    # ---- 2. 获取行业分类 ----
     try:
-        market_caps = fetch_market_caps(symbols)
-    except PermissionError as e:
-        print(f"\n❌ {e}")
-        print("\n💡 请先手动测试你的 API Key 是否可用：")
-        print(f"   curl \"{FMP_BASE}/quote/AAPL?apikey=你的Key\"")
-        return
+        industry_map = fetch_industry_from_wikipedia()
     except Exception as e:
-        print(f"\n❌ 获取市值失败: {e}")
-        return
+        print(f"\n⚠ 获取行业分类失败: {e}")
+        print("  将以空白行业继续...")
+        industry_map = {}
 
-    if len(market_caps) < TOP_N:
-        print(f"\n❌ 仅获取到 {len(market_caps)} 个有效市值，不足 {TOP_N}，终止更新。")
-        return
+    # ---- 3. 合并数据 ----
+    print(f"\n步骤 3/3: 合并数据并写入文件...")
 
-    # ---- 4. 排序取 Top N ----
-    sorted_syms = sorted(market_caps, key=market_caps.get, reverse=True)
-    top_syms = sorted_syms[:TOP_N]
-
-    # ---- 5. 获取 Top N 公司详情 ----
-    profiles = fetch_profiles(top_syms)
-
-    # ---- 6. 组装最终结果 ----
     final_output = []
-    for fmp_sym in top_syms:
-        std_sym = sym_from_fmp(fmp_sym)
+    no_industry = []
 
-        # 优先使用 FMP profile 数据
-        if fmp_sym in profiles and profiles[fmp_sym]["name"]:
-            name = profiles[fmp_sym]["name"]
-            industry = profiles[fmp_sym]["industry"]
-        else:
-            # Fallback: 维基百科数据
-            wiki_entry = wiki_data.get(std_sym, {})
-            name = wiki_entry.get("name", std_sym)
-            industry = wiki_entry.get("industry", "")
+    for item in top_list:
+        raw_symbol = item["symbol"]
+        std_symbol = normalize_symbol(raw_symbol)
+
+        # 尝试多种格式匹配维基百科的行业数据
+        industry = (
+            industry_map.get(std_symbol) or
+            industry_map.get(raw_symbol) or
+            industry_map.get(std_symbol.replace(".", "-")) or
+            ""
+        )
+
+        if not industry:
+            no_industry.append(std_symbol)
 
         final_output.append({
-            "symbol": std_sym,
-            "name": name,
+            "symbol": std_symbol,
+            "name": item["name"],
             "industry": industry,
         })
 
-    # ---- 7. 对比变化 ----
+    if no_industry:
+        print(f"  ⚠ 以下股票未匹配到行业: {', '.join(no_industry)}")
+        print(f"    （可能不在 S&P 500 中）")
+
+    # ---- 4. 对比变化 ----
     if os.path.exists(BACKUP_FILE):
-        print(f"\n与上次对比:")
         show_diff(BACKUP_FILE, final_output)
 
-    # ---- 8. 写入文件 ----
+    # ---- 5. 写入文件 ----
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(final_output, f, indent=2, ensure_ascii=False)
 
-    # ---- 9. 打印结果 ----
+    # ---- 6. 打印结果 ----
     print(f"\n{'─' * 56}")
-    print(f"✅ 成功更新 {OUTPUT_FILE}，共 {len(final_output)} 条\n")
+    print(f"✅ 已更新 {OUTPUT_FILE}，共 {len(final_output)} 条\n")
 
-    print(f"{'排名':>4}  {'代码':<7} {'公司名称'}")
-    print(f"{'─' * 56}")
+    print(f"{'排名':>4}  {'代码':<7} {'行业':<30} {'公司名称'}")
+    print(f"{'─' * 80}")
     for i, item in enumerate(final_output, 1):
-        print(f"{i:>4}. {item['symbol']:<7} {item['name']}")
+        ind = item['industry'][:28] if item['industry'] else "(未分类)"
+        print(f"{i:>4}. {item['symbol']:<7} {ind:<30} {item['name']}")
 
     print(f"\n完成: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
