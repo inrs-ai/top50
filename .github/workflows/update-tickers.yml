@@ -34,5 +34,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add tickers.json
-          git commit --allow-empty -m "chore: 更新美股市值 Top 50 ($(date +%Y-%m-%d))"
+          git commit --allow-empty -m "chore: auto-update tickers.json ($(date +%Y-%m-%d))"
           git push
