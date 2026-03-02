@@ -25,14 +25,17 @@ jobs:
           python -c "
           import os
           import requests
+          from datetime import datetime
 
-          # 定义 2026 年 3 月后已知支持免费层级的模型关键词或 ID
-          # 提示：Google 官方规定 Flash 系列通常提供免费层
-          FREE_KEYWORDS = ['flash', 'lite', 'pro-vision'] 
-          # 明确已知在 2026.3.9 后无免费 API 层级的模型
-          PAID_ONLY = ['gemini-3.1-pro-preview', 'gemini-3.1-flash-image-preview']
+          # 1. 配置筛选逻辑
+          FREE_KEYWORDS = ['flash', 'lite', 'pro-vision']
+          PAID_ONLY = ['preview', 'experimental'] # 如果你想排除不稳定的预览版，可以加在这里
 
           api_key = os.getenv('GEMINI_API_KEY')
+          if not api_key:
+              print('❌ 错误: 未发现 GEMINI_API_KEY 密钥')
+              exit(1)
+
           url = f'https://generativelanguage.googleapis.com/v1beta/models?key={api_key}'
 
           try:
@@ -48,29 +51,41 @@ jobs:
                       methods = m.get('supportedGenerationMethods', [])
                       
                       if 'generateContent' in methods:
-                          # 逻辑判断：是否属于免费层候选名单
+                          # 判断是否为免费层候选
                           is_free_candidate = any(kw in name.lower() for kw in FREE_KEYWORDS)
-                          is_explicitly_paid = any(p in name.lower() for p in PAID_ONLY)
-
-                          if is_free_candidate and not is_explicitly_paid:
+                          # 这里可以根据 2026 年的具体 API 文档进一步精细化过滤
+                          if is_free_candidate:
                               free_tier_models.append(name)
                           else:
                               paid_tier_models.append(name)
 
+                  # 2. 动态排序逻辑：将包含 'latest' 的模型排在最前，之后按名称降序排列（通常版本号越高越靠前）
+                  free_tier_models.sort(key=lambda x: ('latest' in x, x), reverse=True)
+
                   print('\n' + '='*60)
-                  print('✨ 2026年3月9日后【建议使用】的免费层模型:')
+                  print(f'📅 检查日期: {datetime.now().strftime(\"%Y-%m-%d\")}')
+                  print('✨ 自动识别的免费层模型 (按推荐顺序):')
                   for m in free_tier_models:
-                      status = ' (当前使用中)' if 'gemini-3-flash-preview' in m else ''
-                      print(f'  ✅ {m}{status}')
+                      label = ' ⭐ [推荐]' if m == free_tier_models[0] else ''
+                      print(f'  ✅ {m}{label}')
                   
                   print('\n' + '-'*60)
-                  print('💰 仅限付费或 AI Studio 网页端免费的模型:')
+                  print('💰 其他模型 (可能需要付费或仅限 AI Studio):')
                   for m in paid_tier_models:
-                      print(f'  ❌ {m}')
+                      print(f'  - {m}')
+                  
+                  # 3. 动态提示语
                   print('='*60)
-                  print('\n提示: 请优先使用 gemini-3-flash-preview 或 gemini-flash-latest 别名。')
+                  if free_tier_models:
+                      best_model = free_tier_models[0]
+                      print(f'\n💡 建议：')
+                      print(f'   当前最适合免费使用的模型是 **{best_model}**。')
+                      print(f'   如果你的代码需要长期稳定，请优先使用带有 \"-latest\" 后缀的别名。')
+                  else:
+                      print('\n⚠️ 警告：未发现符合免费关键词的模型，请手动检查 API 文档。')
               else:
-                  print('Error:', response.status_code)
+                  print(f'❌ API 请求失败，状态码: {response.status_code}')
+                  print(f'详情: {response.text}')
           except Exception as e:
-              print('Exception:', str(e))
+              print(f'❌ 发生异常: {str(e)}')
           "
