@@ -30,14 +30,14 @@
     "industry": "Interactive Media & Services"
   },
   {
-    "symbol": "AVGO",
-    "name": "Broadcom",
-    "industry": "Semiconductors"
-  },
-  {
     "symbol": "TSLA",
     "name": "Tesla",
     "industry": "Automobile Manufacturers"
+  },
+  {
+    "symbol": "AVGO",
+    "name": "Broadcom",
+    "industry": "Semiconductors"
   },
   {
     "symbol": "BRK.B",
@@ -75,14 +75,14 @@
     "industry": "Pharmaceuticals"
   },
   {
-    "symbol": "MU",
-    "name": "Micron Technology",
-    "industry": "Semiconductors"
-  },
-  {
     "symbol": "MA",
     "name": "Mastercard",
     "industry": "Transaction & Payment Processing Services"
+  },
+  {
+    "symbol": "MU",
+    "name": "Micron Technology",
+    "industry": "Semiconductors"
   },
   {
     "symbol": "COST",
@@ -110,19 +110,14 @@
     "industry": "Personal Care Products"
   },
   {
-    "symbol": "HD",
-    "name": "Home Depot",
-    "industry": "Home Improvement Retail"
-  },
-  {
     "symbol": "CVX",
     "name": "Chevron",
     "industry": "Integrated Oil & Gas"
   },
   {
-    "symbol": "BAC",
-    "name": "Bank of America",
-    "industry": "Diversified Banks"
+    "symbol": "HD",
+    "name": "Home Depot",
+    "industry": "Home Improvement Retail"
   },
   {
     "symbol": "GE",
@@ -130,9 +125,9 @@
     "industry": "Aerospace & Defense"
   },
   {
-    "symbol": "KO",
-    "name": "Coca-Cola",
-    "industry": "Soft Drinks & Non-alcoholic Beverages"
+    "symbol": "BAC",
+    "name": "Bank of America",
+    "industry": "Diversified Banks"
   },
   {
     "symbol": "CAT",
@@ -143,6 +138,11 @@
     "symbol": "PLTR",
     "name": "Palantir",
     "industry": "Application Software"
+  },
+  {
+    "symbol": "KO",
+    "name": "Coca-Cola",
+    "industry": "Soft Drinks & Non-alcoholic Beverages"
   },
   {
     "symbol": "AMD",
@@ -200,11 +200,6 @@
     "industry": "Diversified Banks"
   },
   {
-    "symbol": "MCD",
-    "name": "McDonald",
-    "industry": "Restaurants"
-  },
-  {
     "symbol": "TMUS",
     "name": "T-Mobile US",
     "industry": "Wireless Telecommunication Services"
@@ -213,6 +208,11 @@
     "symbol": "GEV",
     "name": "GE Vernova",
     "industry": "Heavy Electrical Equipment"
+  },
+  {
+    "symbol": "MCD",
+    "name": "McDonald",
+    "industry": "Restaurants"
   },
   {
     "symbol": "PEP",
@@ -245,8 +245,8 @@
     "industry": "Biotechnology"
   },
   {
-    "symbol": "ABT",
-    "name": "Abbott Laboratories",
-    "industry": "Health Care Equipment"
+    "symbol": "KLAC",
+    "name": "KLA",
+    "industry": "Semiconductor Materials & Equipment"
   }
 ]
