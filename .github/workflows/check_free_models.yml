@@ -1,0 +1,76 @@
+name: Check Gemini Free Models
+
+on:
+  workflow_dispatch:
+
+jobs:
+  list-models:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run check script
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python -c "
+          import os
+          import requests
+
+          # 定义 2026 年 3 月后已知支持免费层级的模型关键词或 ID
+          # 提示：Google 官方规定 Flash 系列通常提供免费层
+          FREE_KEYWORDS = ['flash', 'lite', 'pro-vision'] 
+          # 明确已知在 2026.3.9 后无免费 API 层级的模型
+          PAID_ONLY = ['gemini-3.1-pro-preview', 'gemini-3.1-flash-image-preview']
+
+          api_key = os.getenv('GEMINI_API_KEY')
+          url = f'https://generativelanguage.googleapis.com/v1beta/models?key={api_key}'
+
+          try:
+              response = requests.get(url)
+              if response.status_code == 200:
+                  models = response.json().get('models', [])
+                  
+                  free_tier_models = []
+                  paid_tier_models = []
+
+                  for m in models:
+                      name = m.get('name', '').replace('models/', '')
+                      methods = m.get('supportedGenerationMethods', [])
+                      
+                      if 'generateContent' in methods:
+                          # 逻辑判断：是否属于免费层候选名单
+                          is_free_candidate = any(kw in name.lower() for kw in FREE_KEYWORDS)
+                          is_explicitly_paid = any(p in name.lower() for p in PAID_ONLY)
+
+                          if is_free_candidate and not is_explicitly_paid:
+                              free_tier_models.append(name)
+                          else:
+                              paid_tier_models.append(name)
+
+                  print('\n' + '='*60)
+                  print('✨ 2026年3月9日后【建议使用】的免费层模型:')
+                  for m in free_tier_models:
+                      status = ' (当前使用中)' if 'gemini-3-flash-preview' in m else ''
+                      print(f'  ✅ {m}{status}')
+                  
+                  print('\n' + '-'*60)
+                  print('💰 仅限付费或 AI Studio 网页端免费的模型:')
+                  for m in paid_tier_models:
+                      print(f'  ❌ {m}')
+                  print('='*60)
+                  print('\n提示: 请优先使用 gemini-3-flash-preview 或 gemini-flash-latest 别名。')
+              else:
+                  print('Error:', response.status_code)
+          except Exception as e:
+              print('Exception:', str(e))
+          "
