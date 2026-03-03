@@ -125,9 +125,19 @@ def fetch_industry_from_wikipedia() -> dict:
 def normalize_symbol(symbol: str) -> str:
     """
     统一符号格式，处理不同来源的差异
-    companiesmarketcap 可能用 BRK-B，维基百科用 BRK.B
+    目标：统一转换为 Yahoo Finance 格式 (使用 '-' 代表 Class B 等)
+    处理：将 '.' 替换为 '-'
     """
-    return symbol.replace("-", ".").strip()
+    if not symbol:
+        return ""
+    
+    # 统一转为大写（可选，建议加上以保持一致性）
+    s = symbol.upper()
+    
+    # 将点号替换为连字符 (BRK.B -> BRK-B)
+    s = s.replace(".", "-")
+    
+    return s.strip()
 
 
 def show_diff(old_file: str, new_data: list):
@@ -195,21 +205,22 @@ def main():
 
     for item in top_list:
         raw_symbol = item["symbol"]
-        std_symbol = normalize_symbol(raw_symbol)
+        std_symbol = normalize_symbol(raw_symbol) # 此时 BRK.B 变成了 BRK-B
 
         # 尝试多种格式匹配维基百科的行业数据
+        # 维基百科通常用 "BRK.B"，标准化后是 "BRK-B"
         industry = (
-            industry_map.get(std_symbol) or
-            industry_map.get(raw_symbol) or
-            industry_map.get(std_symbol.replace(".", "-")) or
-            ""
+            industry_map.get(std_symbol) or               # 1. 尝试标准化格式 (BRK-B)
+            industry_map.get(raw_symbol) or               # 2. 尝试原始格式
+            industry_map.get(std_symbol.replace("-", ".")) # 3. 【关键】尝试将 - 换回 . 去匹配 (BRK.B)
+            or ""
         )
 
         if not industry:
             no_industry.append(std_symbol)
 
         final_output.append({
-            "symbol": std_symbol,
+            "symbol": std_symbol,  # 写入标准化后的 BRK-B
             "name": item["name"],
             "industry": industry,
         })
