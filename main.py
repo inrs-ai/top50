@@ -100,25 +100,32 @@ def fetch_market_data(tickers):
     return df_result
 
 def fetch_news():
-    """
-    使用 Newsdata.io 获取当日美国商业/财经新闻标题
-    """
     if not NEWSDATA_API_KEY:
         return []
-
-    url = "https://newsdata.io/api/1/news"
+    
+    url = "https://newsdata.io/api/1/latest"
     params = {
         "apikey": NEWSDATA_API_KEY,
-        "country": "us",
-        "category": "business",
-        "language": "en",
-        "size": 15  # 限制返回条数，避免 Token 超限
+        "q": "business",
     }
+    
     try:
         resp = requests.get(url, params=params, timeout=15)
+        
+        # 添加详细的错误信息
+        if resp.status_code == 422:
+            error_data = resp.json()
+            print(f"422 Error Details: {error_data}")
+            # 根据错误信息调整参数
+        
         resp.raise_for_status()
         data = resp.json()
         
+        # 检查是否有错误信息
+        if "error" in data:
+            print(f"API Error: {data['error']}")
+            return []
+            
         articles = data.get("results", [])
         headlines = []
         for a in articles:
@@ -127,6 +134,11 @@ def fetch_news():
             if title:
                 headlines.append(f"{title} ({source})")
         return headlines
+        
+    except requests.exceptions.HTTPError as e:
+        print(f"HTTP Error: {e}")
+        print(f"Response content: {resp.text}")
+        return []
     except Exception as e:
         print(f"Error fetching news from Newsdata.io: {e}")
         return []
