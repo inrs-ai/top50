@@ -439,7 +439,7 @@ def main():
     # 5. 构建邮件
     bj_now = get_beijing_now()
     date_str = bj_now.strftime("%Y-%m-%d")
-    subject = f"🌸 Top 50 Stocks - {date_str}"
+    subject = f"🌸 Top 50 US Stocks - {date_str}"
     
     html_body = build_email_html(df, analysis_text, bj_now)
 
