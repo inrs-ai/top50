@@ -25,6 +25,11 @@
     "industry": "Broadline Retail"
   },
   {
+    "symbol": "AVGO",
+    "name": "Broadcom",
+    "industry": "Semiconductors"
+  },
+  {
     "symbol": "META",
     "name": "Meta Platforms (Facebook)",
     "industry": "Interactive Media & Services"
@@ -33,11 +38,6 @@
     "symbol": "TSLA",
     "name": "Tesla",
     "industry": "Automobile Manufacturers"
-  },
-  {
-    "symbol": "AVGO",
-    "name": "Broadcom",
-    "industry": "Semiconductors"
   },
   {
     "symbol": "BRK-B",
@@ -65,24 +65,14 @@
     "industry": "Integrated Oil & Gas"
   },
   {
-    "symbol": "V",
-    "name": "Visa",
-    "industry": "Transaction & Payment Processing Services"
-  },
-  {
     "symbol": "JNJ",
     "name": "Johnson & Johnson",
     "industry": "Pharmaceuticals"
   },
   {
-    "symbol": "MA",
-    "name": "Mastercard",
+    "symbol": "V",
+    "name": "Visa",
     "industry": "Transaction & Payment Processing Services"
-  },
-  {
-    "symbol": "MU",
-    "name": "Micron Technology",
-    "industry": "Semiconductors"
   },
   {
     "symbol": "COST",
@@ -90,14 +80,14 @@
     "industry": "Consumer Staples Merchandise Retail"
   },
   {
+    "symbol": "MA",
+    "name": "Mastercard",
+    "industry": "Transaction & Payment Processing Services"
+  },
+  {
     "symbol": "ORCL",
     "name": "Oracle",
     "industry": "Application Software"
-  },
-  {
-    "symbol": "ABBV",
-    "name": "AbbVie",
-    "industry": "Biotechnology"
   },
   {
     "symbol": "NFLX",
@@ -105,9 +95,9 @@
     "industry": "Movies & Entertainment"
   },
   {
-    "symbol": "PG",
-    "name": "Procter & Gamble",
-    "industry": "Personal Care Products"
+    "symbol": "MU",
+    "name": "Micron Technology",
+    "industry": "Semiconductors"
   },
   {
     "symbol": "CVX",
@@ -115,14 +105,19 @@
     "industry": "Integrated Oil & Gas"
   },
   {
-    "symbol": "HD",
-    "name": "Home Depot",
-    "industry": "Home Improvement Retail"
+    "symbol": "ABBV",
+    "name": "AbbVie",
+    "industry": "Biotechnology"
   },
   {
-    "symbol": "GE",
-    "name": "General Electric",
-    "industry": "Aerospace & Defense"
+    "symbol": "PLTR",
+    "name": "Palantir",
+    "industry": "Application Software"
+  },
+  {
+    "symbol": "AMD",
+    "name": "AMD",
+    "industry": "Semiconductors"
   },
   {
     "symbol": "BAC",
@@ -135,9 +130,9 @@
     "industry": "Construction Machinery & Heavy Transportation Equipment"
   },
   {
-    "symbol": "PLTR",
-    "name": "Palantir",
-    "industry": "Application Software"
+    "symbol": "PG",
+    "name": "Procter & Gamble",
+    "industry": "Personal Care Products"
   },
   {
     "symbol": "KO",
@@ -145,9 +140,9 @@
     "industry": "Soft Drinks & Non-alcoholic Beverages"
   },
   {
-    "symbol": "AMD",
-    "name": "AMD",
-    "industry": "Semiconductors"
+    "symbol": "HD",
+    "name": "Home Depot",
+    "industry": "Home Improvement Retail"
   },
   {
     "symbol": "CSCO",
@@ -160,6 +155,11 @@
     "industry": "Pharmaceuticals"
   },
   {
+    "symbol": "GE",
+    "name": "General Electric",
+    "industry": "Aerospace & Defense"
+  },
+  {
     "symbol": "AMAT",
     "name": "Applied Materials",
     "industry": "Semiconductor Materials & Equipment"
@@ -170,19 +170,9 @@
     "industry": "Semiconductor Materials & Equipment"
   },
   {
-    "symbol": "PM",
-    "name": "Philip Morris International",
-    "industry": "Tobacco"
-  },
-  {
     "symbol": "RTX",
     "name": "RTX",
     "industry": "Aerospace & Defense"
-  },
-  {
-    "symbol": "UNH",
-    "name": "UnitedHealth",
-    "industry": "Managed Health Care"
   },
   {
     "symbol": "MS",
@@ -195,19 +185,39 @@
     "industry": "Investment Banking & Brokerage"
   },
   {
+    "symbol": "INTC",
+    "name": "Intel",
+    "industry": "Semiconductors"
+  },
+  {
+    "symbol": "UNH",
+    "name": "UnitedHealth",
+    "industry": "Managed Health Care"
+  },
+  {
     "symbol": "WFC",
     "name": "Wells Fargo",
     "industry": "Diversified Banks"
   },
   {
-    "symbol": "TMUS",
-    "name": "T-Mobile US",
-    "industry": "Wireless Telecommunication Services"
+    "symbol": "PM",
+    "name": "Philip Morris International",
+    "industry": "Tobacco"
   },
   {
     "symbol": "GEV",
     "name": "GE Vernova",
     "industry": "Heavy Electrical Equipment"
+  },
+  {
+    "symbol": "IBM",
+    "name": "IBM",
+    "industry": "IT Consulting & Other Services"
+  },
+  {
+    "symbol": "TMUS",
+    "name": "T-Mobile US",
+    "industry": "Wireless Telecommunication Services"
   },
   {
     "symbol": "MCD",
@@ -220,14 +230,9 @@
     "industry": "Soft Drinks & Non-alcoholic Beverages"
   },
   {
-    "symbol": "INTC",
-    "name": "Intel",
-    "industry": "Semiconductors"
-  },
-  {
-    "symbol": "IBM",
-    "name": "IBM",
-    "industry": "IT Consulting & Other Services"
+    "symbol": "VZ",
+    "name": "Verizon",
+    "industry": "Integrated Telecommunication Services"
   },
   {
     "symbol": "AXP",
@@ -235,14 +240,9 @@
     "industry": "Consumer Finance"
   },
   {
-    "symbol": "VZ",
-    "name": "Verizon",
-    "industry": "Integrated Telecommunication Services"
-  },
-  {
-    "symbol": "AMGN",
-    "name": "Amgen",
-    "industry": "Biotechnology"
+    "symbol": "C",
+    "name": "Citigroup",
+    "industry": "Diversified Banks"
   },
   {
     "symbol": "KLAC",
