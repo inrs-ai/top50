@@ -156,9 +156,9 @@ def build_stocks_markdown(df):
         )
     return "\n".join(lines)
 
-def call_llm_analysis(df, news_headlines):
+def call_llm_analysis(df, news_headlines, max_retries=3):
     """
-    调用 Google Gemini API
+    调用 Google Gemini API，失败时最多重试 max_retries 次
     """
     if not GEMINI_API_KEY:
         return "（未配置 GEMINI_API_KEY，暂无法生成 AI 分析。）"
@@ -209,15 +209,22 @@ def call_llm_analysis(df, news_headlines):
 
     headers = {"Content-Type": "application/json"}
 
-    try:
-        resp = requests.post(GEMINI_API_URL, headers=headers, json=payload, timeout=60)
-        resp.raise_for_status()
-        data = resp.json()
-        content = data["candidates"][0]["content"]["parts"][0]["text"]
-        return content.strip()
-    except Exception as e:
-        print(f"Error calling Gemini: {e}")
-        return "（AI 分析生成失败，请检查 LLM 配置或稍后重试。）"
+    for attempt in range(1, max_retries + 1):
+        try:
+            print(f"  Gemini API 调用第 {attempt} 次...")
+            resp = requests.post(GEMINI_API_URL, headers=headers, json=payload, timeout=60)
+            resp.raise_for_status()
+            data = resp.json()
+            content = data["candidates"][0]["content"]["parts"][0]["text"]
+            return content.strip()
+        except Exception as e:
+            print(f"  第 {attempt} 次调用失败: {e}")
+            if attempt < max_retries:
+                wait = attempt * 10  # 递增等待
+                print(f"  将在 {wait} 秒后重试...")
+                time.sleep(wait)
+
+    return "（AI 分析生成失败，已重试 {} 次，请检查 LLM 配置或稍后重试。）".format(max_retries)
 
 def build_email_html(df, analysis_text, bj_now):
     """
