@@ -1,5 +1,6 @@
 import os
 import json
+import time
 import requests
 import yfinance as yf
 import pandas as pd
@@ -212,7 +213,12 @@ def call_llm_analysis(df, news_headlines, max_retries=3):
     for attempt in range(1, max_retries + 1):
         try:
             print(f"  Gemini API 调用第 {attempt} 次...")
-            resp = requests.post(GEMINI_API_URL, headers=headers, json=payload, timeout=60)
+            resp = requests.post(
+                GEMINI_API_URL,
+                headers=headers,
+                json=payload,
+                timeout=(10, 120)   # ← 连接超时10s，读取超时120s
+            )
             resp.raise_for_status()
             data = resp.json()
             content = data["candidates"][0]["content"]["parts"][0]["text"]
@@ -220,7 +226,7 @@ def call_llm_analysis(df, news_headlines, max_retries=3):
         except Exception as e:
             print(f"  第 {attempt} 次调用失败: {e}")
             if attempt < max_retries:
-                wait = attempt * 10  # 递增等待
+                wait = attempt * 10
                 print(f"  将在 {wait} 秒后重试...")
                 time.sleep(wait)
 
