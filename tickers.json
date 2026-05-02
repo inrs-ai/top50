@@ -5,14 +5,14 @@
     "industry": "Semiconductors"
   },
   {
-    "symbol": "AAPL",
-    "name": "Apple",
-    "industry": "Technology Hardware, Storage & Peripherals"
-  },
-  {
     "symbol": "GOOG",
     "name": "Alphabet (Google)",
     "industry": "Interactive Media & Services"
+  },
+  {
+    "symbol": "AAPL",
+    "name": "Apple",
+    "industry": "Technology Hardware, Storage & Peripherals"
   },
   {
     "symbol": "MSFT",
@@ -40,14 +40,14 @@
     "industry": "Automobile Manufacturers"
   },
   {
-    "symbol": "BRK-B",
-    "name": "Berkshire Hathaway",
-    "industry": "Multi-Sector Holdings"
-  },
-  {
     "symbol": "WMT",
     "name": "Walmart",
     "industry": "Consumer Staples Merchandise Retail"
+  },
+  {
+    "symbol": "BRK-B",
+    "name": "Berkshire Hathaway",
+    "industry": "Multi-Sector Holdings"
   },
   {
     "symbol": "LLY",
@@ -65,14 +65,34 @@
     "industry": "Integrated Oil & Gas"
   },
   {
+    "symbol": "V",
+    "name": "Visa",
+    "industry": "Transaction & Payment Processing Services"
+  },
+  {
+    "symbol": "MU",
+    "name": "Micron Technology",
+    "industry": "Semiconductors"
+  },
+  {
+    "symbol": "AMD",
+    "name": "AMD",
+    "industry": "Semiconductors"
+  },
+  {
     "symbol": "JNJ",
     "name": "Johnson & Johnson",
     "industry": "Pharmaceuticals"
   },
   {
-    "symbol": "V",
-    "name": "Visa",
-    "industry": "Transaction & Payment Processing Services"
+    "symbol": "INTC",
+    "name": "Intel",
+    "industry": "Semiconductors"
+  },
+  {
+    "symbol": "ORCL",
+    "name": "Oracle",
+    "industry": "Application Software"
   },
   {
     "symbol": "COST",
@@ -85,9 +105,9 @@
     "industry": "Transaction & Payment Processing Services"
   },
   {
-    "symbol": "ORCL",
-    "name": "Oracle",
-    "industry": "Application Software"
+    "symbol": "CAT",
+    "name": "Caterpillar",
+    "industry": "Construction Machinery & Heavy Transportation Equipment"
   },
   {
     "symbol": "NFLX",
@@ -95,29 +115,9 @@
     "industry": "Movies & Entertainment"
   },
   {
-    "symbol": "MU",
-    "name": "Micron Technology",
-    "industry": "Semiconductors"
-  },
-  {
     "symbol": "CVX",
     "name": "Chevron",
     "industry": "Integrated Oil & Gas"
-  },
-  {
-    "symbol": "ABBV",
-    "name": "AbbVie",
-    "industry": "Biotechnology"
-  },
-  {
-    "symbol": "PLTR",
-    "name": "Palantir",
-    "industry": "Application Software"
-  },
-  {
-    "symbol": "AMD",
-    "name": "AMD",
-    "industry": "Semiconductors"
   },
   {
     "symbol": "BAC",
@@ -125,9 +125,19 @@
     "industry": "Diversified Banks"
   },
   {
-    "symbol": "CAT",
-    "name": "Caterpillar",
-    "industry": "Construction Machinery & Heavy Transportation Equipment"
+    "symbol": "ABBV",
+    "name": "AbbVie",
+    "industry": "Biotechnology"
+  },
+  {
+    "symbol": "CSCO",
+    "name": "Cisco",
+    "industry": "Communications Equipment"
+  },
+  {
+    "symbol": "PLTR",
+    "name": "Palantir",
+    "industry": "Application Software"
   },
   {
     "symbol": "PG",
@@ -140,29 +150,14 @@
     "industry": "Soft Drinks & Non-alcoholic Beverages"
   },
   {
+    "symbol": "UNH",
+    "name": "UnitedHealth",
+    "industry": "Managed Health Care"
+  },
+  {
     "symbol": "HD",
     "name": "Home Depot",
     "industry": "Home Improvement Retail"
-  },
-  {
-    "symbol": "CSCO",
-    "name": "Cisco",
-    "industry": "Communications Equipment"
-  },
-  {
-    "symbol": "MRK",
-    "name": "Merck",
-    "industry": "Pharmaceuticals"
-  },
-  {
-    "symbol": "GE",
-    "name": "General Electric",
-    "industry": "Aerospace & Defense"
-  },
-  {
-    "symbol": "AMAT",
-    "name": "Applied Materials",
-    "industry": "Semiconductor Materials & Equipment"
   },
   {
     "symbol": "LRCX",
@@ -170,9 +165,9 @@
     "industry": "Semiconductor Materials & Equipment"
   },
   {
-    "symbol": "RTX",
-    "name": "RTX",
-    "industry": "Aerospace & Defense"
+    "symbol": "AMAT",
+    "name": "Applied Materials",
+    "industry": "Semiconductor Materials & Equipment"
   },
   {
     "symbol": "MS",
@@ -180,29 +175,9 @@
     "industry": "Investment Banking & Brokerage"
   },
   {
-    "symbol": "GS",
-    "name": "Goldman Sachs",
-    "industry": "Investment Banking & Brokerage"
-  },
-  {
-    "symbol": "INTC",
-    "name": "Intel",
-    "industry": "Semiconductors"
-  },
-  {
-    "symbol": "UNH",
-    "name": "UnitedHealth",
-    "industry": "Managed Health Care"
-  },
-  {
-    "symbol": "WFC",
-    "name": "Wells Fargo",
-    "industry": "Diversified Banks"
-  },
-  {
-    "symbol": "PM",
-    "name": "Philip Morris International",
-    "industry": "Tobacco"
+    "symbol": "GE",
+    "name": "General Electric",
+    "industry": "Aerospace & Defense"
   },
   {
     "symbol": "GEV",
@@ -210,34 +185,39 @@
     "industry": "Heavy Electrical Equipment"
   },
   {
-    "symbol": "IBM",
-    "name": "IBM",
-    "industry": "IT Consulting & Other Services"
+    "symbol": "MRK",
+    "name": "Merck",
+    "industry": "Pharmaceuticals"
   },
   {
-    "symbol": "TMUS",
-    "name": "T-Mobile US",
-    "industry": "Wireless Telecommunication Services"
+    "symbol": "GS",
+    "name": "Goldman Sachs",
+    "industry": "Investment Banking & Brokerage"
   },
   {
-    "symbol": "MCD",
-    "name": "McDonald",
-    "industry": "Restaurants"
+    "symbol": "PM",
+    "name": "Philip Morris International",
+    "industry": "Tobacco"
   },
   {
-    "symbol": "PEP",
-    "name": "Pepsico",
-    "industry": "Soft Drinks & Non-alcoholic Beverages"
+    "symbol": "TXN",
+    "name": "Texas Instruments",
+    "industry": "Semiconductors"
   },
   {
-    "symbol": "VZ",
-    "name": "Verizon",
-    "industry": "Integrated Telecommunication Services"
+    "symbol": "WFC",
+    "name": "Wells Fargo",
+    "industry": "Diversified Banks"
   },
   {
-    "symbol": "AXP",
-    "name": "American Express",
-    "industry": "Consumer Finance"
+    "symbol": "RTX",
+    "name": "RTX",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "symbol": "KLAC",
+    "name": "KLA",
+    "industry": "Semiconductor Materials & Equipment"
   },
   {
     "symbol": "C",
@@ -245,8 +225,28 @@
     "industry": "Diversified Banks"
   },
   {
-    "symbol": "KLAC",
-    "name": "KLA",
-    "industry": "Semiconductor Materials & Equipment"
+    "symbol": "IBM",
+    "name": "IBM",
+    "industry": "IT Consulting & Other Services"
+  },
+  {
+    "symbol": "AXP",
+    "name": "American Express",
+    "industry": "Consumer Finance"
+  },
+  {
+    "symbol": "ANET",
+    "name": "Arista Networks",
+    "industry": "Communications Equipment"
+  },
+  {
+    "symbol": "PEP",
+    "name": "Pepsico",
+    "industry": "Soft Drinks & Non-alcoholic Beverages"
+  },
+  {
+    "symbol": "TMUS",
+    "name": "T-Mobile US",
+    "industry": "Wireless Telecommunication Services"
   }
 ]
