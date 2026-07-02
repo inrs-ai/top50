@@ -25,19 +25,24 @@
     "industry": "Broadline Retail"
   },
   {
+    "symbol": "SPCX",
+    "name": "SpaceX",
+    "industry": ""
+  },
+  {
     "symbol": "AVGO",
     "name": "Broadcom",
     "industry": "Semiconductors"
   },
   {
-    "symbol": "TSLA",
-    "name": "Tesla",
-    "industry": "Automobile Manufacturers"
-  },
-  {
     "symbol": "META",
     "name": "Meta Platforms (Facebook)",
     "industry": "Interactive Media & Services"
+  },
+  {
+    "symbol": "TSLA",
+    "name": "Tesla",
+    "industry": "Automobile Manufacturers"
   },
   {
     "symbol": "MU",
@@ -55,6 +60,11 @@
     "industry": "Pharmaceuticals"
   },
   {
+    "symbol": "JPM",
+    "name": "JPMorgan Chase",
+    "industry": "Diversified Banks"
+  },
+  {
     "symbol": "WMT",
     "name": "Walmart",
     "industry": "Consumer Staples Merchandise Retail"
@@ -65,29 +75,9 @@
     "industry": "Semiconductors"
   },
   {
-    "symbol": "JPM",
-    "name": "JPMorgan Chase",
-    "industry": "Diversified Banks"
-  },
-  {
-    "symbol": "ORCL",
-    "name": "Oracle",
-    "industry": "Application Software"
-  },
-  {
-    "symbol": "XOM",
-    "name": "Exxon Mobil",
-    "industry": "Integrated Oil & Gas"
-  },
-  {
     "symbol": "V",
     "name": "Visa",
     "industry": "Transaction & Payment Processing Services"
-  },
-  {
-    "symbol": "INTC",
-    "name": "Intel",
-    "industry": "Semiconductors"
   },
   {
     "symbol": "JNJ",
@@ -95,19 +85,34 @@
     "industry": "Pharmaceuticals"
   },
   {
-    "symbol": "CSCO",
-    "name": "Cisco",
-    "industry": "Communications Equipment"
+    "symbol": "INTC",
+    "name": "Intel",
+    "industry": "Semiconductors"
   },
   {
-    "symbol": "COST",
-    "name": "Costco",
-    "industry": "Consumer Staples Merchandise Retail"
+    "symbol": "XOM",
+    "name": "Exxon Mobil",
+    "industry": "Integrated Oil & Gas"
+  },
+  {
+    "symbol": "AMAT",
+    "name": "Applied Materials",
+    "industry": "Semiconductor Materials & Equipment"
   },
   {
     "symbol": "MA",
     "name": "Mastercard",
     "industry": "Transaction & Payment Processing Services"
+  },
+  {
+    "symbol": "ABBV",
+    "name": "AbbVie",
+    "industry": "Biotechnology"
+  },
+  {
+    "symbol": "CSCO",
+    "name": "Cisco",
+    "industry": "Communications Equipment"
   },
   {
     "symbol": "CAT",
@@ -120,19 +125,9 @@
     "industry": "Semiconductor Materials & Equipment"
   },
   {
-    "symbol": "AMAT",
-    "name": "Applied Materials",
-    "industry": "Semiconductor Materials & Equipment"
-  },
-  {
-    "symbol": "ABBV",
-    "name": "AbbVie",
-    "industry": "Biotechnology"
-  },
-  {
-    "symbol": "CVX",
-    "name": "Chevron",
-    "industry": "Integrated Oil & Gas"
+    "symbol": "COST",
+    "name": "Costco",
+    "industry": "Consumer Staples Merchandise Retail"
   },
   {
     "symbol": "BAC",
@@ -140,29 +135,9 @@
     "industry": "Diversified Banks"
   },
   {
-    "symbol": "PLTR",
-    "name": "Palantir",
+    "symbol": "ORCL",
+    "name": "Oracle",
     "industry": "Application Software"
-  },
-  {
-    "symbol": "NFLX",
-    "name": "Netflix",
-    "industry": "Movies & Entertainment"
-  },
-  {
-    "symbol": "UNH",
-    "name": "UnitedHealth",
-    "industry": "Managed Health Care"
-  },
-  {
-    "symbol": "MS",
-    "name": "Morgan Stanley",
-    "industry": "Investment Banking & Brokerage"
-  },
-  {
-    "symbol": "KO",
-    "name": "Coca-Cola",
-    "industry": "Soft Drinks & Non-alcoholic Beverages"
   },
   {
     "symbol": "GE",
@@ -170,14 +145,14 @@
     "industry": "Aerospace & Defense"
   },
   {
-    "symbol": "PG",
-    "name": "Procter & Gamble",
-    "industry": "Personal Care Products"
+    "symbol": "UNH",
+    "name": "UnitedHealth",
+    "industry": "Managed Health Care"
   },
   {
-    "symbol": "GS",
-    "name": "Goldman Sachs",
-    "industry": "Investment Banking & Brokerage"
+    "symbol": "KO",
+    "name": "Coca-Cola",
+    "industry": "Soft Drinks & Non-alcoholic Beverages"
   },
   {
     "symbol": "HD",
@@ -185,9 +160,24 @@
     "industry": "Home Improvement Retail"
   },
   {
-    "symbol": "IBM",
-    "name": "IBM",
-    "industry": "IT Consulting & Other Services"
+    "symbol": "PG",
+    "name": "Procter & Gamble",
+    "industry": "Personal Care Products"
+  },
+  {
+    "symbol": "MS",
+    "name": "Morgan Stanley",
+    "industry": "Investment Banking & Brokerage"
+  },
+  {
+    "symbol": "CVX",
+    "name": "Chevron",
+    "industry": "Integrated Oil & Gas"
+  },
+  {
+    "symbol": "NFLX",
+    "name": "Netflix",
+    "industry": "Movies & Entertainment"
   },
   {
     "symbol": "MRK",
@@ -195,19 +185,9 @@
     "industry": "Pharmaceuticals"
   },
   {
-    "symbol": "DELL",
-    "name": "Dell",
-    "industry": "Technology Hardware, Storage & Peripherals"
-  },
-  {
-    "symbol": "TXN",
-    "name": "Texas Instruments",
-    "industry": "Semiconductors"
-  },
-  {
-    "symbol": "PM",
-    "name": "Philip Morris International",
-    "industry": "Tobacco"
+    "symbol": "PLTR",
+    "name": "Palantir",
+    "industry": "Application Software"
   },
   {
     "symbol": "KLAC",
@@ -215,23 +195,38 @@
     "industry": "Semiconductor Materials & Equipment"
   },
   {
+    "symbol": "GS",
+    "name": "Goldman Sachs",
+    "industry": "Investment Banking & Brokerage"
+  },
+  {
     "symbol": "GEV",
     "name": "GE Vernova",
     "industry": "Heavy Electrical Equipment"
   },
   {
-    "symbol": "MRVL",
-    "name": "Marvell Technology",
-    "industry": ""
+    "symbol": "PM",
+    "name": "Philip Morris International",
+    "industry": "Tobacco"
   },
   {
-    "symbol": "SNDK",
-    "name": "Sandisk",
-    "industry": "Technology Hardware, Storage & Peripherals"
+    "symbol": "PANW",
+    "name": "Palo Alto Networks",
+    "industry": "Systems Software"
   },
   {
-    "symbol": "QCOM",
-    "name": "QUALCOMM",
+    "symbol": "IBM",
+    "name": "IBM",
+    "industry": "IT Consulting & Other Services"
+  },
+  {
+    "symbol": "RTX",
+    "name": "RTX",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "symbol": "TXN",
+    "name": "Texas Instruments",
     "industry": "Semiconductors"
   },
   {
@@ -240,13 +235,18 @@
     "industry": "Diversified Banks"
   },
   {
-    "symbol": "PANW",
-    "name": "Palo Alto Networks",
-    "industry": "Systems Software"
+    "symbol": "SNDK",
+    "name": "Sandisk",
+    "industry": "Technology Hardware, Storage & Peripherals"
   },
   {
-    "symbol": "RTX",
-    "name": "RTX",
-    "industry": "Aerospace & Defense"
+    "symbol": "DELL",
+    "name": "Dell",
+    "industry": "Technology Hardware, Storage & Peripherals"
+  },
+  {
+    "symbol": "AXP",
+    "name": "American Express",
+    "industry": "Consumer Finance"
   }
 ]
