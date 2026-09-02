@@ -25,14 +25,14 @@
     "industry": "Broadline Retail"
   },
   {
-    "symbol": "AVGO",
-    "name": "Broadcom",
-    "industry": "Semiconductors"
-  },
-  {
     "symbol": "SPCX",
     "name": "SpaceX",
     "industry": ""
+  },
+  {
+    "symbol": "AVGO",
+    "name": "Broadcom",
+    "industry": "Semiconductors"
   },
   {
     "symbol": "META",
@@ -50,6 +50,11 @@
     "industry": "Multi-Sector Holdings"
   },
   {
+    "symbol": "MU",
+    "name": "Micron Technology",
+    "industry": "Semiconductors"
+  },
+  {
     "symbol": "LLY",
     "name": "Eli Lilly",
     "industry": "Pharmaceuticals"
@@ -58,11 +63,6 @@
     "symbol": "JPM",
     "name": "JPMorgan Chase",
     "industry": "Diversified Banks"
-  },
-  {
-    "symbol": "MU",
-    "name": "Micron Technology",
-    "industry": "Semiconductors"
   },
   {
     "symbol": "WMT",
@@ -95,11 +95,6 @@
     "industry": "Transaction & Payment Processing Services"
   },
   {
-    "symbol": "CSCO",
-    "name": "Cisco",
-    "industry": "Communications Equipment"
-  },
-  {
     "symbol": "INTC",
     "name": "Intel",
     "industry": "Semiconductors"
@@ -115,34 +110,9 @@
     "industry": "Diversified Banks"
   },
   {
-    "symbol": "COST",
-    "name": "Costco",
-    "industry": "Consumer Staples Merchandise Retail"
-  },
-  {
-    "symbol": "AMAT",
-    "name": "Applied Materials",
-    "industry": "Semiconductor Materials & Equipment"
-  },
-  {
-    "symbol": "CVX",
-    "name": "Chevron",
-    "industry": "Integrated Oil & Gas"
-  },
-  {
-    "symbol": "KO",
-    "name": "Coca-Cola",
-    "industry": "Soft Drinks & Non-alcoholic Beverages"
-  },
-  {
-    "symbol": "UNH",
-    "name": "UnitedHealth",
-    "industry": "Managed Health Care"
-  },
-  {
-    "symbol": "CAT",
-    "name": "Caterpillar",
-    "industry": "Construction Machinery & Heavy Transportation Equipment"
+    "symbol": "CSCO",
+    "name": "Cisco",
+    "industry": "Communications Equipment"
   },
   {
     "symbol": "ORCL",
@@ -150,49 +120,14 @@
     "industry": "Application Software"
   },
   {
-    "symbol": "GE",
-    "name": "General Electric",
-    "industry": "Aerospace & Defense"
+    "symbol": "CVX",
+    "name": "Chevron",
+    "industry": "Integrated Oil & Gas"
   },
   {
-    "symbol": "LRCX",
-    "name": "Lam Research",
-    "industry": "Semiconductor Materials & Equipment"
-  },
-  {
-    "symbol": "PG",
-    "name": "Procter & Gamble",
-    "industry": "Personal Care Products"
-  },
-  {
-    "symbol": "HD",
-    "name": "Home Depot",
-    "industry": "Home Improvement Retail"
-  },
-  {
-    "symbol": "MS",
-    "name": "Morgan Stanley",
-    "industry": "Investment Banking & Brokerage"
-  },
-  {
-    "symbol": "MRK",
-    "name": "Merck",
-    "industry": "Pharmaceuticals"
-  },
-  {
-    "symbol": "GS",
-    "name": "Goldman Sachs",
-    "industry": "Investment Banking & Brokerage"
-  },
-  {
-    "symbol": "NFLX",
-    "name": "Netflix",
-    "industry": "Movies & Entertainment"
-  },
-  {
-    "symbol": "PM",
-    "name": "Philip Morris International",
-    "industry": "Tobacco"
+    "symbol": "COST",
+    "name": "Costco",
+    "industry": "Consumer Staples Merchandise Retail"
   },
   {
     "symbol": "PLTR",
@@ -200,9 +135,84 @@
     "industry": "Application Software"
   },
   {
+    "symbol": "KO",
+    "name": "Coca-Cola",
+    "industry": "Soft Drinks & Non-alcoholic Beverages"
+  },
+  {
+    "symbol": "MRK",
+    "name": "Merck",
+    "industry": "Pharmaceuticals"
+  },
+  {
+    "symbol": "CAT",
+    "name": "Caterpillar",
+    "industry": "Construction Machinery & Heavy Transportation Equipment"
+  },
+  {
+    "symbol": "LRCX",
+    "name": "Lam Research",
+    "industry": "Semiconductor Materials & Equipment"
+  },
+  {
+    "symbol": "UNH",
+    "name": "UnitedHealth",
+    "industry": "Managed Health Care"
+  },
+  {
+    "symbol": "AMAT",
+    "name": "Applied Materials",
+    "industry": "Semiconductor Materials & Equipment"
+  },
+  {
+    "symbol": "NFLX",
+    "name": "Netflix",
+    "industry": "Movies & Entertainment"
+  },
+  {
+    "symbol": "PG",
+    "name": "Procter & Gamble",
+    "industry": "Personal Care Products"
+  },
+  {
+    "symbol": "GE",
+    "name": "General Electric",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "symbol": "MS",
+    "name": "Morgan Stanley",
+    "industry": "Investment Banking & Brokerage"
+  },
+  {
+    "symbol": "DELL",
+    "name": "Dell",
+    "industry": "Technology Hardware, Storage & Peripherals"
+  },
+  {
+    "symbol": "HD",
+    "name": "Home Depot",
+    "industry": "Home Improvement Retail"
+  },
+  {
+    "symbol": "PM",
+    "name": "Philip Morris International",
+    "industry": "Tobacco"
+  },
+  {
+    "symbol": "GS",
+    "name": "Goldman Sachs",
+    "industry": "Investment Banking & Brokerage"
+  },
+  {
     "symbol": "RTX",
     "name": "RTX",
     "industry": "Aerospace & Defense"
+  },
+  {
+    "symbol": "WFC",
+    "name": "Wells Fargo",
+    "industry": "Diversified Banks"
   },
   {
     "symbol": "PANW",
@@ -215,24 +225,9 @@
     "industry": "Heavy Electrical Equipment"
   },
   {
-    "symbol": "DELL",
-    "name": "Dell",
-    "industry": "Technology Hardware, Storage & Peripherals"
-  },
-  {
-    "symbol": "WFC",
-    "name": "Wells Fargo",
-    "industry": "Diversified Banks"
-  },
-  {
-    "symbol": "TXN",
-    "name": "Texas Instruments",
-    "industry": "Semiconductors"
-  },
-  {
-    "symbol": "KLAC",
-    "name": "KLA",
-    "industry": "Semiconductor Materials & Equipment"
+    "symbol": "AMGN",
+    "name": "Amgen",
+    "industry": "Biotechnology"
   },
   {
     "symbol": "ANET",
@@ -240,9 +235,14 @@
     "industry": "Communications Equipment"
   },
   {
-    "symbol": "AXP",
-    "name": "American Express",
-    "industry": "Consumer Finance"
+    "symbol": "TXN",
+    "name": "Texas Instruments",
+    "industry": "Semiconductors"
+  },
+  {
+    "symbol": "SNDK",
+    "name": "Sandisk",
+    "industry": "Technology Hardware, Storage & Peripherals"
   },
   {
     "symbol": "C",
