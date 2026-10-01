@@ -5,6 +5,7 @@ import requests
 import yfinance as yf
 import pandas as pd
 import markdown
+import pytz
 from datetime import datetime, timedelta, timezone
 
 # ========== 配置部分 ==========
@@ -42,12 +43,18 @@ def fetch_market_data(tickers):
         return pd.DataFrame()
 
     symbols = [t["symbol"] for t in tickers]
+
+    ny_tz = pytz.timezone("America/New_York")
+    now_ny = datetime.now(ny_tz)
     
-    # 使用 yfinance 批量下载最近 5 天数据（增加天数以防长假）
+    end_date = (now_ny + timedelta(days=1)).strftime("%Y-%m-%d")
+    start_date = (now_ny - timedelta(days=7)).strftime("%Y-%m-%d")    
+    
     try:
         data = yf.download(
             tickers=" ".join(symbols),
-            period="5d",
+            start=start_date,
+            end=end_date,
             interval="1d",
             group_by="ticker",
             auto_adjust=False,
