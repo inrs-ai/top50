@@ -71,35 +71,54 @@ def fetch_market_data(tickers):
         industry = t["industry"]
 
         try:
-            # 处理多层级索引或单层级索引
-            if len(symbols) == 1:
-                df = data
-            else:
-                # 检查 symbol 是否在列中
-                if symbol not in data.columns.levels[0]:
+            key = symbol.strip().upper()
+            # 按实际列结构判断，不按 ticker 数量判断
+            # 此处对应下载参数 group_by="ticker"
+            if isinstance(data.columns, pd.MultiIndex):
+                if key not in data.columns.get_level_values(0):
+                    print(f"[{symbol}] 下载结果中没有该股票")
                     continue
-                df = data[symbol]
+                df = data[key]
+            else:
+                df = data
 
-            df = df.dropna()
-            if len(df) < 2:
+            df = df.sort_index()
+            # 同一次下载结果中，对比旧逻辑和新逻辑使用的日期
+            old_df = df.dropna()
+            closes = df["Close"].dropna()
+
+            print(f"\n[{symbol}] 原始最后 3 行：")
+            print(df.tail(3).to_string())
+            print("旧逻辑使用日期:",
+                  old_df.index[-1] if not old_df.empty else None)
+            print("Close 最后有效日期:",
+                  closes.index[-1] if not closes.empty else None)
+
+            if len(closes) < 2:
+                print(f"[{symbol}] 有效收盘价不足 2 条")
                 continue
 
-            latest = df.iloc[-1]
-            prev = df.iloc[-2]
+            close = float(closes.iloc[-1])
+            prev_close = float(closes.iloc[-2])
 
-            close = float(latest["Close"])
-            prev_close = float(prev["Close"])
+            if prev_close == 0:
+                print(f"[{symbol}] 前一条收盘价为 0")
+                continue
+
             pct_change = (close - prev_close) / prev_close * 100.0
 
             rows.append({
                 "symbol": symbol,
                 "name": name,
                 "industry": industry,
+                "trade_date": closes.index[-1].strftime("%Y-%m-%d"),
+                "prev_trade_date": closes.index[-2].strftime("%Y-%m-%d"),
                 "close": round(close, 2),
                 "pct_change": round(pct_change, 2)
             })
+
         except Exception as e:
-            # 静默失败，继续处理下一个
+            print(f"[{symbol}] 处理失败: {type(e).__name__}: {e}")
             continue
 
     df_result = pd.DataFrame(rows)
