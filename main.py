@@ -34,11 +34,42 @@ def load_tickers():
     with open("tickers.json", "r", encoding="utf-8") as f:
         return json.load(f)
 
+def get_live_price(symbol, expected_date):
+    """盘中时最新一根日线的 Close 为 NaN，改用 1 分钟K线取最新价。
+
+    expected_date: 日线最新一行的日期，用于校验 1 分钟数据是否属于同一交易日，
+                   避免盘前/休市时拿到前一交易日的旧价格。
+    """
+    try:
+        intraday = yf.download(
+            tickers=symbol,
+            period="1d",
+            interval="1m",
+            auto_adjust=False,
+            progress=False,
+            threads=False
+        )
+        if intraday is None or intraday.empty:
+            return None
+        closes = intraday["Close"]
+        if isinstance(closes, pd.DataFrame):
+            closes = closes.iloc[:, 0]
+        closes = closes.dropna()
+        if closes.empty:
+            return None
+        last_ts = closes.index[-1]
+        if hasattr(last_ts, "tz_convert"):
+            last_ts = last_ts.tz_convert("America/New_York")
+        if last_ts.date() != expected_date.date():
+            print(f"[{symbol}] 1 分钟数据日期（{last_ts.date()}）与最新日线日期"
+                  f"（{expected_date.date()}）不一致，放弃使用实时价")
+            return None
+        return float(closes.iloc[-1])
+    except Exception as e:
+        print(f"[{symbol}] 获取盘中实时价失败: {type(e).__name__}: {e}")
+        return None
+
 def fetch_market_data(tickers):
-    """
-    使用 yfinance 获取当日收盘价和涨跌幅
-    返回 DataFrame: [symbol, name, industry, close, pct_change]
-    """
     if not tickers:
         return pd.DataFrame()
 
@@ -72,8 +103,6 @@ def fetch_market_data(tickers):
 
         try:
             key = symbol.strip().upper()
-            # 按实际列结构判断，不按 ticker 数量判断
-            # 此处对应下载参数 group_by="ticker"
             if isinstance(data.columns, pd.MultiIndex):
                 if key not in data.columns.get_level_values(0):
                     print(f"[{symbol}] 下载结果中没有该股票")
@@ -82,24 +111,49 @@ def fetch_market_data(tickers):
             else:
                 df = data
 
-            df = df.sort_index()
-            # 同一次下载结果中，对比旧逻辑和新逻辑使用的日期
-            old_df = df.dropna()
+            df = df.sort_index().dropna(how="all")
             closes = df["Close"].dropna()
 
             print(f"\n[{symbol}] 原始最后 3 行：")
             print(df.tail(3).to_string())
-            print("旧逻辑使用日期:",
-                  old_df.index[-1] if not old_df.empty else None)
-            print("Close 最后有效日期:",
-                  closes.index[-1] if not closes.empty else None)
 
-            if len(closes) < 2:
+            if df.empty or closes.empty:
+                print(f"[{symbol}] 无有效数据")
+                continue
+
+            last_date = df.index[-1]
+
+            if pd.notna(df["Close"].iloc[-1]):
+                # 最新一根日线已收盘，直接使用
+                trade_date = last_date
+                close = float(df["Close"].iloc[-1])
+                prevs = closes.iloc[:-1]
+                price_source = "日线收盘价"
+            else:
+                # 最新一根日线正在盘中（Close 为 NaN），用 1 分钟线的最新价作为当日最新价
+                live_price = get_live_price(symbol, last_date)
+                if live_price is not None:
+                    trade_date = last_date
+                    close = live_price
+                    prevs = closes
+                    price_source = "盘中实时价"
+                else:
+                    # 实时价获取失败，回退为旧逻辑：使用最后一条有效收盘价
+                    print(f"[{symbol}] 实时价获取失败，回退到最后一条有效收盘价")
+                    trade_date = closes.index[-1]
+                    close = float(closes.iloc[-1])
+                    prevs = closes.iloc[:-1]
+                    price_source = "日线收盘价（回退）"
+
+            print(f"使用日期: {trade_date.strftime('%Y-%m-%d')}"
+                  f"（{price_source}: {close:.2f}）")
+
+            if prevs.empty:
                 print(f"[{symbol}] 有效收盘价不足 2 条")
                 continue
 
-            close = float(closes.iloc[-1])
-            prev_close = float(closes.iloc[-2])
+            prev_close = float(prevs.iloc[-1])
+            prev_trade_date = prevs.index[-1]
 
             if prev_close == 0:
                 print(f"[{symbol}] 前一条收盘价为 0")
@@ -111,8 +165,8 @@ def fetch_market_data(tickers):
                 "symbol": symbol,
                 "name": name,
                 "industry": industry,
-                "trade_date": closes.index[-1].strftime("%Y-%m-%d"),
-                "prev_trade_date": closes.index[-2].strftime("%Y-%m-%d"),
+                "trade_date": trade_date.strftime("%Y-%m-%d"),
+                "prev_trade_date": prev_trade_date.strftime("%Y-%m-%d"),
                 "close": round(close, 2),
                 "pct_change": round(pct_change, 2)
             })
